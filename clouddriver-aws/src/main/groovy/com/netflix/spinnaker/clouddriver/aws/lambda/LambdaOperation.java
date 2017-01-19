@@ -20,15 +20,15 @@ public class LambdaOperation {
 
   private final AmazonClientProvider amazonClientProvider;
   private final AWSCredentialsProvider awsCredentialsProvider;
-  private final ObjectMapper mapper;
+  private final ObjectMapper amazonObjectMapper;
 
   @Autowired
   public LambdaOperation(AmazonClientProvider amazonClientProvider,
                          AWSCredentialsProvider awsCredentialsProvider,
-                         ObjectMapper mapper) {
+                         ObjectMapper amazonObjectMapper) {
     this.amazonClientProvider = amazonClientProvider;
     this.awsCredentialsProvider = awsCredentialsProvider;
-    this.mapper = mapper;
+    this.amazonObjectMapper = amazonObjectMapper;
   }
 
   public CompletableFuture<Map<String, Object>> execute(String account,
@@ -38,7 +38,7 @@ public class LambdaOperation {
     try {
       InvokeRequest request = new InvokeRequest();
       request.setFunctionName(functionName);
-      request.setPayload(mapper.writeValueAsString(input));
+      request.setPayload(amazonObjectMapper.writeValueAsString(input));
 
       // TODO: fix this as it blocks a thread from common pool
       return supplyAsync(() -> {
@@ -70,7 +70,7 @@ public class LambdaOperation {
   @SuppressWarnings("unchecked")
   private Map<String, Object> parseResult(InvokeResult result) {
     try {
-      return mapper.readValue(result.getPayload().array(), Map.class);
+      return amazonObjectMapper.readValue(result.getPayload().array(), Map.class);
     } catch (IOException e) {
       throw new LambdaExecutionException(e);
     }

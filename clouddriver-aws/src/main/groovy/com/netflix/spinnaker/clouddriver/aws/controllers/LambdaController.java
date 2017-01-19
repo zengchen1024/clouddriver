@@ -1,59 +1,33 @@
 package com.netflix.spinnaker.clouddriver.aws.controllers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.FunctionConfiguration;
-import com.amazonaws.services.lambda.model.ListFunctionsRequest;
-import com.amazonaws.services.lambda.model.ListFunctionsResult;
 import com.netflix.spinnaker.clouddriver.aws.lambda.LambdaOperation;
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAMBDAS;
 
 @RestController
 @RequestMapping("/lambdas")
 public class LambdaController {
-
-  @Autowired
-  private AmazonClientProvider amazonClientProvider;
-
-  @Autowired
-  private AccountCredentialsProvider accountCredentialsProvider;
-
-  @Autowired
+  private final Cache cacheView;
   private LambdaOperation lambdaOperation;
 
-  @RequestMapping(value = "/{region}/{account}", method = GET)
-  public List<FunctionConfiguration> listFunctions(String account, String region) {
-    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
-    AWSLambda lambda = amazonClientProvider.getAmazonLambda(credentials, region);
-
-    List<FunctionConfiguration> allFunctions = new ArrayList<>();
-
-    String next = null;
-    do {
-      ListFunctionsResult result = lambda.listFunctions(new ListFunctionsRequest().withMarker(next));
-      List<FunctionConfiguration> functions = result.getFunctions();
-
-      if (functions != null) {
-        for (FunctionConfiguration function : functions) {
-          allFunctions.add(function);
-        }
-      }
-
-      next = result.getNextMarker();
-
-    } while (next != null);
-
-    return allFunctions;
+  @Autowired
+  public LambdaController(Cache cacheView, LambdaOperation lambdaOperation) {
+    this.cacheView = cacheView;
+    this.lambdaOperation = lambdaOperation;
   }
 
   @RequestMapping(
@@ -74,5 +48,21 @@ public class LambdaController {
       .whenCompleteAsync((result, ex) -> deferredResult.setResult(result));
 
     return deferredResult;
+  }
+
+  @RequestMapping(
+    value = "/{region}/{account}",
+    method = GET,
+    produces = "application/json"
+  )
+  public List<String> listFunctions(@PathVariable String region,
+                                    @PathVariable String account) {
+    String functionSearch = Keys.getLambdaFunctionKey("*", region, account);
+    Collection<CacheData> matches = cacheView.getAll(LAMBDAS.getNs(), cacheView.filterIdentifiers(LAMBDAS.getNs(), functionSearch));
+
+    return matches
+      .stream()
+      .map(data -> (String) data.getAttributes().get("name"))
+      .collect(Collectors.toList());
   }
 }
