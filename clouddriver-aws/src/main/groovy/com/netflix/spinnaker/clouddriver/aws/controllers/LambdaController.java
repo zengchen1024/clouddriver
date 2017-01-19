@@ -16,7 +16,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LAMBDAS;
+import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 
 @RestController
 @RequestMapping("/lambdas")
@@ -58,7 +58,7 @@ public class LambdaController {
   public List<String> listFunctions(@PathVariable String region,
                                     @PathVariable String account) {
     String functionSearch = Keys.getLambdaFunctionKey("*", region, account);
-    Collection<CacheData> matches = cacheView.getAll(LAMBDAS.getNs(), cacheView.filterIdentifiers(LAMBDAS.getNs(), functionSearch));
+    Collection<CacheData> matches = cacheView.getAll(LAMBDA_FUNCTIONS.getNs(), cacheView.filterIdentifiers(LAMBDA_FUNCTIONS.getNs(), functionSearch));
 
     return matches
       .stream()

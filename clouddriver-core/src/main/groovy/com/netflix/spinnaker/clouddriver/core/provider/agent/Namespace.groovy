@@ -31,8 +31,7 @@ public enum Namespace {
   HEALTH,
   ON_DEMAND,
   RESERVATION_REPORTS,
-  RESERVED_INSTANCES,
-  LAMBDAS
+  RESERVED_INSTANCES
 
   final String ns
 
