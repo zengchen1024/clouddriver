@@ -7,8 +7,10 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -36,10 +38,10 @@ public class LambdaController {
     produces = "application/json"
   )
   public DeferredResult<Map<String, Object>> invokeFunction(
-    String account,
-    String region,
-    String function,
-    Map<String, Object> payload) {
+    @RequestParam("account") String account,
+    @RequestParam("region") String region,
+    @RequestParam("function") String function,
+    @RequestBody Map<String, Object> payload) {
     DeferredResult<Map<String, Object>> deferredResult = new DeferredResult<>();
 
     lambdaOperation
