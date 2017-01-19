@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent;
 
 import com.amazonaws.services.lambda.AWSLambda;
+import com.amazonaws.services.lambda.model.FunctionConfiguration;
+import com.amazonaws.services.lambda.model.ListFunctionsRequest;
 import com.amazonaws.services.lambda.model.ListFunctionsResult;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -120,9 +122,22 @@ public class AmazonLambdaFunctionCachingAgent implements CachingAgent, CustomSch
     log.info("Describing items in " + getAgentType());
     AWSLambda lambda = amazonClientProvider.getAmazonLambda(account, region);
     List<CacheData> data = new ArrayList<>();
+    List<FunctionConfiguration> allFunctions = new ArrayList<>();
 
-    ListFunctionsResult functions = lambda.listFunctions();
-    data.addAll(functions.getFunctions()
+    String next = null;
+    do {
+      ListFunctionsResult result = lambda.listFunctions(new ListFunctionsRequest().withMarker(next));
+      List<FunctionConfiguration> functions = result.getFunctions();
+      if (functions != null) {
+        functions.forEach(allFunctions::add);
+      }
+
+      next = result.getNextMarker();
+
+    } while (next != null);
+
+
+    data.addAll(allFunctions
       .stream()
       .map(f -> {
         String key = Keys.getLambdaFunctionKey(f.getFunctionName(), region, account.getName());
