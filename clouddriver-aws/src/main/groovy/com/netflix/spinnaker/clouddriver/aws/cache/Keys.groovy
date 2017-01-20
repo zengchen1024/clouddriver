@@ -27,8 +27,7 @@ class Keys {
     KEY_PAIRS,
     INSTANCE_TYPES,
     ELASTIC_IPS,
-    ON_DEMAND,
-    LAMBDA_FUNCTIONS
+    ON_DEMAND
 
     final String ns
 
@@ -76,9 +75,6 @@ class Keys {
       case Namespace.ELASTIC_IPS.ns:
         result << [address: parts[2], account: parts[3], region: parts[4]]
         break
-      case Namespace.LAMBDA_FUNCTIONS.ns:
-        result << [name: parts[2], account: parts[3], region: parts[4]]
-        break
       default:
         return null
         break
@@ -123,11 +119,5 @@ class Keys {
                                 String region,
                                 String account) {
     "$ID:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
-  }
-
-  static String getLambdaFunctionKey(String functionName,
-                                     String region,
-                                     String account) {
-    "$ID:${Namespace.LAMBDA_FUNCTIONS}:${functionName}:${account}:${region}"
   }
 }
