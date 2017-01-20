@@ -1,12 +1,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.lambda.model.InvokeRequest
 import com.amazonaws.services.lambda.model.InvokeResult
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InvokeLambdaDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 
 class InvokeLambdaAtomicOperation implements AtomicOperation<Map<String, Object>> {
@@ -15,7 +16,7 @@ class InvokeLambdaAtomicOperation implements AtomicOperation<Map<String, Object>
 
   @Autowired ObjectMapper amazonObjectMapper
   @Autowired AmazonClientProvider amazonClientProvider
-  @Autowired AWSCredentialsProvider awsCredentialsProvider
+  @Autowired AccountCredentialsProvider credentialsProvider
 
   InvokeLambdaAtomicOperation(InvokeLambdaDescription description) {
     this.description = description
@@ -28,8 +29,10 @@ class InvokeLambdaAtomicOperation implements AtomicOperation<Map<String, Object>
       request.setFunctionName(description.function)
       request.setPayload(amazonObjectMapper.writeValueAsString(description.payload))
       return parseResult(
-        amazonClientProvider
-          .getAmazonLambda(description.account, awsCredentialsProvider, description.region)
+        amazonClientProvider.getAmazonLambda(
+          credentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials,
+          description.region
+        )
           .invoke(request)
       )
     } catch (IOException e) {
