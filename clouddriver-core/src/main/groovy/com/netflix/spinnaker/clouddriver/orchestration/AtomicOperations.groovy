@@ -71,4 +71,6 @@ final class AtomicOperations {
   // Snapshot operations
   public static final String SAVE_SNAPSHOT = "saveSnapshot"
   public static final String RESTORE_SNAPSHOT = "restoreSnapshot"
+
+  public static final String INVOKE_LAMBDA = "invokeLambda"
 }
