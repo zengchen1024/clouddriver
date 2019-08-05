@@ -1,0 +1,120 @@
+/*
+ * Copyright 2019 Huawei Technologies Co.,Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.clouddriver.huaweicloud.model
+
+import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
+import com.netflix.spinnaker.clouddriver.model.HealthState
+import com.netflix.spinnaker.clouddriver.model.Instance
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImageSummary
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.ImagesSummary
+import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts
+import groovy.transform.Canonical
+
+@Canonical
+class HuaweiCloudServerGroup implements ServerGroup {
+
+  String name
+  String account
+  String region
+  Boolean disabled
+
+  Set<String> zones
+  Map<String, Object> image
+  Map<String, Object> launchConfig
+  Map<String, Object> scalingConfig
+  Map<String, Object> buildInfo
+  Map<String, String> tags
+  Set<String> loadBalancers
+  Set<Instance> instances
+
+  final String type = HuaweiCloudProvider.ID
+  final String cloudProvider = HuaweiCloudProvider.ID
+
+  @Override
+  Boolean isDisabled() {
+    disabled
+  }
+
+  @Override
+  Long getCreatedTime() {
+    0
+  }
+
+  @Override
+  Set<String> getSecurityGroups() {
+    (launchConfig && launchConfig.containsKey('securityGroups')) ? (Set<String>) launchConfig.securityGroups : []
+  }
+
+  @Override
+  InstanceCounts getInstanceCounts() {
+    new InstanceCounts(
+      total: instances ? instances.size() : 0,
+      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
+  }
+
+  @Override
+  Capacity getCapacity() {
+    scalingConfig ?
+      new Capacity(
+        min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0,
+        max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0,
+        desired: scalingConfig.desiredSize ? scalingConfig.desiredSize as Integer : 0)
+      : null
+  }
+
+  @Override
+  ImagesSummary getImagesSummary() {
+    new ImagesSummaryImpl(
+      summaries: [
+        new ImageSummaryImpl(
+          serverGroupName: name,
+          imageName: image?.name,
+          imageId: image?.id,
+          buildInfo: buildInfo,
+          image: image
+        )
+      ]
+    )
+  }
+
+  @Override
+  ImageSummary getImageSummary() {
+    imagesSummary?.summaries?.getAt(0)
+  }
+
+  static class ImageSummaryImpl implements ImageSummary {
+    String serverGroupName
+    String imageId
+    String imageName
+    Map<String, Object> image
+    Map<String, Object> buildInfo
+  }
+
+  static class ImagesSummaryImpl implements ImagesSummary {
+    List<ImageSummary> summaries
+  }
+
+  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+    instances.findAll { Instance it -> it.getHealthState() == healthState }
+  }
+}
