@@ -2,7 +2,8 @@ dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-core")
   //implementation project(":clouddriver-eureka")
-  //implementation project(":clouddriver-security")
+  implementation project(":clouddriver-consul")
+  implementation project(":clouddriver-security")
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
@@ -11,6 +12,7 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation 'com.huawei:openstack4j:1.0.15'
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
