@@ -21,9 +21,9 @@ import com.huawei.openstack4j.core.transport.Config
 import com.huawei.openstack4j.model.common.Identifier
 import com.huawei.openstack4j.model.identity.v3.Token
 import com.huawei.openstack4j.openstack.OSFactory
+import groovy.util.logging.Slf4j
 
 public class HuaweiCloudCredentials {
-
   Token token = null
 
   OSClient buildClient(
@@ -34,21 +34,27 @@ public class HuaweiCloudCredentials {
       String authUrl,
       Boolean insecure) {
     def config = insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
-
-    if (needRefreshToken()) {
-      synchronized (this) {
-        if (needRefreshToken()) {
-          token = OSFactory.builderV3()
-            .withConfig(config)
-            .endpoint(authUrl)
-            .credentials(username, password, Identifier.byName(domainName))
-            .scopeToProject(Identifier.byName(projectName), Identifier.byName(domainName))
-            .authenticate()
-            .token
+    def client = null
+    try {
+      if (needRefreshToken()) {
+        synchronized (this) {
+          if (needRefreshToken()) {
+            token = OSFactory.builderV3()
+              .withConfig(config)
+              .endpoint(authUrl)
+              .credentials(username, password, Identifier.byName(domainName))
+              .scopeToProject(Identifier.byName(projectName), Identifier.byName(domainName))
+              .authenticate()
+              .token
+          }
         }
       }
+
+      client = OSFactory.clientFromToken(token, config)
+    } catch (Exception) {
+      log.error("build authorized client error")
     }
-    OSFactory.clientFromToken(token, config)
+    client
   }
 
   private boolean needRefreshToken() {

@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.huawei.openstack4j.api.OSClient
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import groovy.transform.ToString
 
-@ToString(includeNames = true, excludes = "password")
 class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials> {
   static final String CLOUD_PROVIDER = "huaweicloud"
 
