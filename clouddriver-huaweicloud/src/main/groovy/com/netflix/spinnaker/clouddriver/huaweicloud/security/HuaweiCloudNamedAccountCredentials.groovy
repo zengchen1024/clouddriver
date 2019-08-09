@@ -73,7 +73,7 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
       this.consulConfig.applyDefaults()
     }
     this.credentials = new HuaweiCloudCredentials()
-    this.requiredGroupMembership = requiredGroupMembership
+    this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
   }
 
   @Override

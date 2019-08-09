@@ -19,16 +19,15 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.security
 import com.netflix.spinnaker.clouddriver.huaweicloud.config.HuaweiCloudConfigurationProperties
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import groovy.util.logging.Slf4j
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 @Configuration
 class HuaweiCloudCredentialsInitializer {
-  private static final Logger log = LoggerFactory.getLogger(this.class)
 
   @Bean
   List<HuaweiCloudNamedAccountCredentials> huaweiCloudNamedAccountCredentials(
@@ -62,8 +61,8 @@ class HuaweiCloudCredentialsInitializer {
         )
 
         accountCredentialsRepository.save(managedAccount.name, account)
-      } catch (e) {
-        log.error "Could not load account ${managedAccount.name} for huaweicloud.", e
+      } catch (Exception e) {
+        log.error("Could not load account ${managedAccount.name} for huaweicloud, error={}", e)
       }
     }
 
