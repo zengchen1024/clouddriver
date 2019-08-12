@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Target, Inc.
+ * Copyright 2019 Huawei Technologies Co.,Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
@@ -29,18 +30,34 @@ abstract class AbstractEnableDisableInstancesInDiscoveryOperation implements Ato
 
   @Override
   Void operate(List priorOutputs) {
+    def credentials = description.credentials
+    def instances = description.instanceIds
+    String verb = disable ? 'disable' : 'enable'
+    String presentParticipling = disable ? 'Disabling' : 'Enabling'
+
+    def task = TaskAware.getTask()
+    task.updateStatus(
+      phaseName,
+      "Initializing $verb server group operation for instances $instances in $description.region...")
+
+    if (!credentials.consulConfig?.enabled) {
+      throw new IllegalArgumentException("Consul isn't enabled for account $credentials.name.")
+    }
+
+    instances.each { String instance ->
+      task.updateStatus(phaseName, "$presentParticipling instance $instance...")
+      EnableDisableConsulInstance.operate(
+        credentials.consulConfig,
+        instance,
+        disable
+          ? EnableDisableConsulInstance.State.disable
+          : EnableDisableConsulInstance.State.enable)
+    }
+
     return null
   }
 
-  /**
-   * Operations must indicate if they are disabling the instance from service discovery.
-   * @return
-   */
   abstract boolean isDisable()
 
-  /**
-   * Phase name associated to operation.
-   * @return
-   */
   abstract String getPhaseName()
 }

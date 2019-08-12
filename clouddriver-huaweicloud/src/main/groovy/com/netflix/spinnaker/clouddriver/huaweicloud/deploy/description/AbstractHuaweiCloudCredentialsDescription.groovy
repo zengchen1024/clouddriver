@@ -20,5 +20,6 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAc
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
 
 abstract class AbstractHuaweiCloudCredentialsDescription implements CredentialsNameable {
+  String accountName
   HuaweiCloudNamedAccountCredentials credentials
 }
