@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 
-abstract class AbstractHuaweiCloudDescriptionValidator<T extends AbstractHuaweiCloudCredentialsDescription> extends DescriptionValidator<T> {
+abstract class AbstractDescriptionValidator<T extends AbstractHuaweiCloudCredentialsDescription> extends DescriptionValidator<T> {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider

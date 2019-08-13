@@ -16,20 +16,22 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
 import org.springframework.validation.Errors
 
-abstract class AbstractEnableDisableInstancesInDiscoveryDescriptionValidator extends AbstractDescriptionValidator<HuaweiCloudInstancesDescription> {
+abstract class AbstractRegisterDeregisterInstancesDescriptionValidator extends AbstractDescriptionValidator<InstancesRegistrationDescription> {
 
   @Override
-  void validateMore(List priorDescriptions, HuaweiCloudInstancesDescription description, Errors errors) {
+  void validateMore(List priorDescriptions, InstancesRegistrationDescription description, Errors errors) {
     def helper = getValidateHelper(errors)
 
-    helper.validateNotEmpty(description.instanceIds, 'instanceIds')
+    helper.validateNotEmpty(description.instanceIds, "instanceIds")
+    helper.validateNotEmpty(description.loadBalancerIds, "loadBalancerIds")
 
     helper.validateNotEmpty(description.region, 'region')
     if (!(region in description.credentials.regions)) {
       errors.rejectValue("region", "${contex}.region.invalid")
     }
+    // validate weight
   }
 }

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.huawei.openstack4j.api.OSClient
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
+import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClientImpl
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
 class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials> {
@@ -41,6 +43,7 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
   Map<String, List<String>> regionToZones
   final List<String> requiredGroupMembership
   final HuaweiCloudCredentials credentials
+  final HuaweiCloudClient cloudClient = new HuaweiCloudClientImpl(this)
 
   HuaweiCloudNamedAccountCredentials(String accountName,
                                      String environment,
@@ -88,9 +91,5 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
 
   OSClient getAuthClient() {
     credentials.buildClient(username, password, projectName, domainName, authUrl, insecure)
-  }
-
-  OSClient getAuthRegionClient(String region) {
-    authClient.useRegion(region)
   }
 }
