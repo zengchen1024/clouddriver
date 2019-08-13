@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
 
 
-class HuaweiCloudAtomicOperationConverterHelper {
+class AtomicOperationConverterHelper {
 
   static <T extends CredentialsNameable> T convertDescription(
       Map input,

@@ -33,6 +33,6 @@ class EnableInstancesInDiscoveryConverter extends AbstractAtomicOperationsCreden
 
   @Override
   InstancesDescription convertDescription(Map input) {
-    HuaweiCloudAtomicOperationConverterHelper.convertDescription(input, this, InstancesDescription)
+    AtomicOperationConverterHelper.convertDescription(input, this, InstancesDescription)
   }
 }

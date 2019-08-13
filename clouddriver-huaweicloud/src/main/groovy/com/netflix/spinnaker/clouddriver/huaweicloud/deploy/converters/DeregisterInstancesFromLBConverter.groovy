@@ -18,20 +18,20 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.RegisterInstancesToLBAtomicOperation
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.DeregisterInstancesFromLBAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
-@HuaweiCloudOperation(AtomicOperations.REGISTER_INSTANCES_WITH_LOAD_BALANCER)
-class RegisterInstancesToLBAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@HuaweiCloudOperation(AtomicOperations.DEREGISTER_INSTANCES_FROM_LOAD_BALANCER)
+class DeregisterInstancesFromLBConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new RegisterInstancesToLBAtomicOperation(convertDescription(input))
+    new DeregisterInstancesFromLBAtomicOperation(convertDescription(input))
   }
 
   @Override
   InstancesRegistrationDescription convertDescription(Map input) {
-    HuaweiCloudAtomicOperationConverterHelper.convertDescription(input, this, InstancesRegistrationDescription)
+    AtomicOperationConverterHelper.convertDescription(input, this, InstancesRegistrationDescription)
   }
 }
