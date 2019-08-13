@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
-abstract class AbstractRegisterDeregisterInstancesAtomicOperation implements AtomicOperation<Void> {
+abstract class AbstractRegisterDeregisterInstancesOperation implements AtomicOperation<Void> {
 
   abstract String getBasePhase() // Either 'REGISTER' or 'DEREGISTER'.
   abstract Boolean getAction() // Either 'true' or 'false', for Register and Deregister respectively.
@@ -28,7 +28,7 @@ abstract class AbstractRegisterDeregisterInstancesAtomicOperation implements Ato
 
   InstancesRegistrationDescription description
 
-  AbstractRegisterDeregisterInstancesAtomicOperation(InstancesRegistrationDescription description) {
+  AbstractRegisterDeregisterInstancesOperation(InstancesRegistrationDescription description) {
     this.description = description
   }
 

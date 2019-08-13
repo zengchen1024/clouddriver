@@ -27,10 +27,10 @@ import groovy.util.logging.Slf4j
  * TODO test upsert load balancer
  */
 @Slf4j
-class TerminateInstancesAtomicOperation implements AtomicOperation<Void> {
+class TerminateInstancesOperation implements AtomicOperation<Void> {
   final String phaseName = "TERMINATE_INSTANCES"
 
-  TerminateInstancesAtomicOperation(InstancesDescription description) {
+  TerminateInstancesOperation(InstancesDescription description) {
     super(description)
   }
 

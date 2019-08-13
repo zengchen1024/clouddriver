@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
 
-class DeregisterInstancesFromLBAtomicOperation extends AbstractRegisterDeregisterInstancesAtomicOperation {
+class DeregisterInstancesFromLBOperation extends AbstractRegisterDeregisterInstancesOperation {
   String basePhase = 'DEREGISTER'
   Boolean action = Boolean.FALSE
   String verb = 'deregistering'
@@ -28,7 +28,7 @@ class DeregisterInstancesFromLBAtomicOperation extends AbstractRegisterDeregiste
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromLoadBalancer": { "loadBalancerIds": ["2112e340-4714-492c-b9db-e45e1b1102c5"], "instanceIds": ["155e68a7-a7dd-433a-b2c1-c8d6d38fb89a"], "account": "test", "region": "region" }} ]' localhost:7002/huaweicloud/ops
    * curl -X GET -H "Accept: application/json" localhost:7002/task/1
    */
-  DeregisterInstancesFromLBAtomicOperation(InstancesRegistrationDescription description) {
+  DeregisterInstancesFromLBOperation(InstancesRegistrationDescription description) {
     super(description)
   }
 }

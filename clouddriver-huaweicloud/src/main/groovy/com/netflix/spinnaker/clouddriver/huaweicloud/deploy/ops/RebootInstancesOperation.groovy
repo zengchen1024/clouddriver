@@ -21,11 +21,11 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class RebootInstancesAtomicOperation implements AtomicOperation<Void> {
+class RebootInstancesOperation implements AtomicOperation<Void> {
   private final String BASE_PHASE = "REBOOT_INSTANCES"
   InstancesDescription description
 
-  RebootInstancesAtomicOperation(InstancesDescription description) {
+  RebootInstancesOperation(InstancesDescription description) {
     this.description = description
   }
 

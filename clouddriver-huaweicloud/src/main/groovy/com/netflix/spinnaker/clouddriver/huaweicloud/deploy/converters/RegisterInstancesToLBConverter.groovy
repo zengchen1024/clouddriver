@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.RegisterInstancesToLBAtomicOperation
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.RegisterInstancesToLBOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 class RegisterInstancesToLBConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new RegisterInstancesToLBAtomicOperation(convertDescription(input))
+    new RegisterInstancesToLBOperation(convertDescription(input))
   }
 
   @Override
