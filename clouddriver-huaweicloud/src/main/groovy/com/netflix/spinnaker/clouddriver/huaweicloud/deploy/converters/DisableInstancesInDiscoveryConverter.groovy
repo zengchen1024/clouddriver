@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.DisableInstancesInDiscoveryOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -30,7 +30,7 @@ class DisableInstancesInDiscoveryConverter extends AbstractAtomicOperationsCrede
     new DisableInstancesInDiscoveryOperation(convertDescription(input))
   }
 
-  HuaweiCloudInstancesDescription convertDescription(Map input) {
-    HuaweiCloudAtomicOperationConverteHelper.convertDescription(input, this, HuaweiCloudInstancesDescription)
+  InstancesDescription convertDescription(Map input) {
+    HuaweiCloudAtomicOperationConverteHelper.convertDescription(input, this, InstancesDescription)
   }
 }

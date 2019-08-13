@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulInstance
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
 abstract class AbstractEnableDisableInstancesInDiscoveryOperation implements AtomicOperation<Void> {
 
-  HuaweiCloudInstancesDescription description
+  InstancesDescription description
 
-  AbstractEnableDisableInstancesInDiscoveryOperation(HuaweiCloudInstancesDescription description) {
+  AbstractEnableDisableInstancesInDiscoveryOperation(InstancesDescription description) {
     this.description = description
   }
 

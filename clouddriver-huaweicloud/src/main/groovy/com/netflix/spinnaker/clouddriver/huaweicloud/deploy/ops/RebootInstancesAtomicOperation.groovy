@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
 @Slf4j
 class RebootInstancesAtomicOperation implements AtomicOperation<Void> {
   private final String BASE_PHASE = "REBOOT_INSTANCES"
-  HuaweiCloudInstancesDescription description
+  InstancesDescription description
 
-  RebootInstancesAtomicOperation(HuaweiCloudInstancesDescription description) {
+  RebootInstancesAtomicOperation(InstancesDescription description) {
     this.description = description
   }
 

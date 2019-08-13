@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 
 /**
  * curl -X POST -H "Content-Type: application/json" -d '[ { "disableInstancesInDiscovery": { "instanceIds": ["155e68a7-a7dd-433a-b2c1-c8d6d38fb89a"], "region": "RegionOne", "account": "my-huaweicloud-account" }} ]' localhost:7002/huaweicloud/ops
@@ -25,7 +25,7 @@ class DisableInstancesInDiscoveryOperation extends AbstractEnableDisableInstance
   boolean disable = true
   String phaseName = 'DISABLE_INSTANCES_IN_DISCOVERY'
 
-  DisableInstancesInDiscoveryOperation(HuaweiCloudInstancesDescription description) {
+  DisableInstancesInDiscoveryOperation(InstancesDescription description) {
     super(description)
   }
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description
 
-class HuaweiCloudInstancesDescription extends AbstractHuaweiCloudCredentialsDescription {
+class InstancesDescription extends AbstractHuaweiCloudCredentialsDescription {
   String region
   List<String> instanceIds
 }

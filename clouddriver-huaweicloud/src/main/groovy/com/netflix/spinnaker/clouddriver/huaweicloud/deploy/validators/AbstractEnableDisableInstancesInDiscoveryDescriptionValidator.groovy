@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import org.springframework.validation.Errors
 
-abstract class AbstractEnableDisableInstancesInDiscoveryDescriptionValidator extends AbstractDescriptionValidator<HuaweiCloudInstancesDescription> {
+abstract class AbstractEnableDisableInstancesInDiscoveryDescriptionValidator extends AbstractDescriptionValidator<InstancesDescription> {
 
   @Override
-  void validateMore(List priorDescriptions, HuaweiCloudInstancesDescription description, Errors errors) {
+  void validateMore(List priorDescriptions, InstancesDescription description, Errors errors) {
     def helper = getValidateHelper(errors)
 
     helper.validateNotEmpty(description.instanceIds, 'instanceIds')

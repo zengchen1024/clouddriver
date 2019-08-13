@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.HuaweiCloudInstancesDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
@@ -30,7 +30,7 @@ import groovy.util.logging.Slf4j
 class TerminateInstancesAtomicOperation implements AtomicOperation<Void> {
   final String phaseName = "TERMINATE_INSTANCES"
 
-  TerminateInstancesAtomicOperation(HuaweiCloudInstancesDescription description) {
+  TerminateInstancesAtomicOperation(InstancesDescription description) {
     super(description)
   }
 
