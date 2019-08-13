@@ -30,9 +30,7 @@ abstract class AbstractDescriptionValidator<T extends AbstractHuaweiCloudCredent
 
   @Override
   void validate(List priorDescriptions, T description, Errors errors) {
-    def helper = getValidateHelper(errors)
-
-    if (validateCredentials(description.accountName, errors)) {
+    if (!validateCredentials(description.accountName, errors)) {
       return
     }
 
@@ -43,12 +41,8 @@ abstract class AbstractDescriptionValidator<T extends AbstractHuaweiCloudCredent
 
   abstract void validateMore(List priorDescriptions, T description, Errors errors)
 
-  HuaweiCloudDiscriptionValidateHelper getValidateHelper(Errors errors) {
-    return new HuaweiCloudDiscriptionValidateHelper(context, errors)
-  }
-
   private boolean validateCredentials(String accountName, Errors errors) {
-    def helper = getValidateHelper(errors)
+    def helper = new ValidateHelper(context, errors)
     def result = helper.validateNotEmpty(accountName, "accountName")
     if (!result) {
       return result

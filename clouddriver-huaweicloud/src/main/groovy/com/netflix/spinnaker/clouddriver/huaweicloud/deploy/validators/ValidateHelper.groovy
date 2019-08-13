@@ -19,12 +19,12 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 
 import org.springframework.validation.Errors
 
-class HuaweiCloudDiscriptionValidateHelper {
+class ValidateHelper {
 
   String context
   Errors errors
 
-  HuaweiCloudDiscriptionValidateHelper(String context, Errors errors) {
+  ValidateHelper(String context, Errors errors) {
     this.context = context
     this.errors = errors
   }
