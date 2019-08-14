@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.model.compute.RebootType
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
 class HuaweiCloudClientImpl implements HuaweiCloudClient {
   final AuthorizedClientProvider provider
@@ -33,6 +34,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   void rebootInstance(String region, String instanceId) {
     getRegionClient(region).compute().servers().reboot(instanceId, RebootType.SOFT)
+  }
+
+  @Override
+  List<Vpc> listVpcs(String region) {
+    getRegionClient(region).vpc().vpcs().list()
   }
 }
 

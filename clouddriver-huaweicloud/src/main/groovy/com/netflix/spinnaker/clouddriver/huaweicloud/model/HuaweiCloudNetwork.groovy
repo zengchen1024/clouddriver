@@ -17,11 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.Network
 
 class HuaweiCloudNetwork implements Network {
-  final String cloudProvider = HuaweiCloudProvider.ID
+  String cloudProvider
   String id
   String name
   String account
