@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.Subnet
-import groovy.transform.Canonical
 
-@Canonical
 class HuaweiCloudSubnet implements Subnet {
-    final String type = HuaweiCloudProvider.ID
-    String id
-    String purpose
+  String type
+  String id
+  String purpose
+  String account
+  String region
+  String cidr
 }

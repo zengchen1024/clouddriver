@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
 interface HuaweiCloudClient {
@@ -32,5 +33,12 @@ interface HuaweiCloudClient {
    * @return
    */
   List<Vpc> listVpcs(String region)
+
+  /**
+   * List the available subnets in a region.
+   * @param region
+   * @return
+   */
+  List<Subnet> listSubnets(String region)
 }
 

@@ -25,6 +25,7 @@ class Keys {
 
   static enum Namespace {
     NETWORKS,
+    SUBNETS,
     ON_DEMAND
 
     final String ns
@@ -57,6 +58,14 @@ class Keys {
             id: parts[4]]
         }
         break
+      case Namespace.SUBNETS.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
       default:
         return null
     }
@@ -70,5 +79,9 @@ class Keys {
 
   static String getNetworkKey(String networkId, String account, String region) {
     "${ID}:${Namespace.NETWORKS}:${account}:${region}:${networkId}"
+  }
+
+  static String getSubnetKey(String subnetId, String account, String region) {
+    "${ID}:${Namespace.SUBNETS}:${account}:${region}:${subnetId}"
   }
 }

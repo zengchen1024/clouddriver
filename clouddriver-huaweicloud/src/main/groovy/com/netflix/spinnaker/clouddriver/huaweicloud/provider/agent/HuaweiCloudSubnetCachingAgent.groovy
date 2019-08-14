@@ -5,18 +5,18 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent
 
-import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -25,38 +25,38 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.NETWORKS
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SUBNETS
 
 @Slf4j
-class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAgent {
+class HuaweiCloudSubnetCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
-    AUTHORITATIVE.forType(NETWORKS.ns)
+    AUTHORITATIVE.forType(SUBNETS.ns)
   ] as Set
 
-  String agentType = "${accountName}/${region}/${HuaweiCloudNetworkCachingAgent.simpleName}"
+  String agentType = "${accountName}/${region}/${HuaweiCloudSubnetCachingAgent.simpleName}"
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<Vpc> vpcs = cloudClient.listVpcs(region)
-    buildCacheResult(vpcs)
+    List<Subnet> subnets = cloudClient.listSubnets(region)
+    buildCacheResult(subnets)
   }
 
-  private CacheResult buildCacheResult(List<Vpc> vpcs) {
+  private CacheResult buildCacheResult(List<Subnet> subnets) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
-    def nscache = cacheResultBuilder.namespace(NETWORKS.ns)
+    def nscache = cacheResultBuilder.namespace(SUBNETS.ns)
 
-    vpcs.each { Vpc vpc ->
-      String networkKey = Keys.getNetworkKey(vpc.id, accountName, region)
+    subnets?.each { Subnet subnet ->
+      String subnetKey = Keys.getSubnetKey(subnet.id, accountName, region)
 
-      nscache.keep(networkKey).with {
-        attributes.network = vpc
+      nscache.keep(subnetKey).with {
+        attributes.subnet = subnet
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} networks in ${agentType}")
+    log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} subnets in ${agentType}")
 
     cacheResultBuilder.build()
   }

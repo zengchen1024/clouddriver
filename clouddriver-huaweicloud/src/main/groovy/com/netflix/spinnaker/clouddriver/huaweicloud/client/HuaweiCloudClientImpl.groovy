@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.model.compute.RebootType
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
 class HuaweiCloudClientImpl implements HuaweiCloudClient {
@@ -39,6 +40,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<Vpc> listVpcs(String region) {
     getRegionClient(region).vpc().vpcs().list()
+  }
+
+  @Override
+  List<Subnet> listSubnets(String region) {
+    getRegionClient(region).vpc().subnets().list()
   }
 }
 
