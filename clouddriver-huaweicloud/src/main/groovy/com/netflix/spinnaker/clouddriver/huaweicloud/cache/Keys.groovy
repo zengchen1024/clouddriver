@@ -24,6 +24,8 @@ import static com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider.
 class Keys {
 
   static enum Namespace {
+    APPLICATIONS,
+    CLUSTERS,
     NETWORKS,
     SUBNETS,
     ON_DEMAND
@@ -50,6 +52,22 @@ class Keys {
 
     def result = [:]
     switch (parts[1]) {
+      case Namespace.APPLICATIONS.ns:
+        if (parts.length == 3) {
+          result << [application: parts[2].toLowerCase()]
+        }
+        break
+      case Namespace.CLUSTERS.ns:
+        if (parts.length == 5) {
+          def names = Names.parseName(parts[4])
+          result << [
+            application: parts[3].toLowerCase(),
+            account: parts[2],
+            name: parts[4],
+            stack: names.stack,
+            detail: names.detail]
+        }
+        break
       case Namespace.NETWORKS.ns:
         if (parts.length == 5) {
           result << [
@@ -75,6 +93,10 @@ class Keys {
     }
     result << [provider: parts[0], type: parts[1]]
     result
+  }
+
+  static String getApplicationKey(String application) {
+    "${ID}:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getNetworkKey(String networkId, String account, String region) {
