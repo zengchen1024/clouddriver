@@ -19,9 +19,14 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.config.HuaweiCloudConfiguration
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudNetworkCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.HuaweiCloudInfrastructureProvider
+import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import com.netflix.spinnaker.config.HuaweiCloudConfiguration
 import java.util.concurrent.ConcurrentHashMap
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -50,9 +55,32 @@ class HuaweiCloudInfrastructureProviderConfig {
   }
 
   private static void synchronizeHuaweiCloudProvider(
-      HuaweiCloudInfrastructureProvider huaweiCloudInfastructureProvider,
+      HuaweiCloudInfrastructureProvider infastructureProvider,
       AccountCredentialsRepository accountCredentialsRepository,
       ObjectMapper objectMapper,
       Registry registry) {
+
+    def scheduledAccounts = ProviderUtils.getScheduledAccounts(infastructureProvider)
+    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(
+      accountCredentialsRepository, HuaweiCloudNamedAccountCredentials)
+
+    List<CachingAgent> newlyAddedAgents = []
+
+    allAccounts.each { HuaweiCloudNamedAccountCredentials credentials ->
+      if (!scheduledAccounts.contains(credentials.name)) {
+        credentials.regions.each { String region ->
+          newlyAddedAgents << new HuaweiCloudSubnetCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudNetworkCachingAgent(credentials, objectMapper, region)
+        }
+      }
+    }
+
+    if (infastructureProvider.agentScheduler) {
+      ProviderUtils.rescheduleAgents(infastructureProvider, newlyAddedAgents)
+    }
+
+    if (!newlyAddedAgents.isEmpty()) {
+      infastructureProvider.agents.addAll(newlyAddedAgents)
+    }
   }
 }
