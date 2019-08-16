@@ -22,12 +22,14 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.NETWORKS
 
 @Slf4j
+@groovy.transform.InheritConstructors
 class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [

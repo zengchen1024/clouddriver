@@ -19,11 +19,12 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.huawei.openstack4j.api.OSClient
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
+import com.netflix.spinnaker.clouddriver.huaweicloud.client.AuthorizedClientProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClientImpl
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
-class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials> {
+class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials>, AuthorizedClientProvider {
   static final String CLOUD_PROVIDER = "huaweicloud"
 
   final String accountName

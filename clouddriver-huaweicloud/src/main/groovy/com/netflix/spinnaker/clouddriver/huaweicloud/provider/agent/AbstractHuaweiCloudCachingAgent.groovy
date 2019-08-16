@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAc
 abstract class AbstractHuaweiCloudCachingAgent implements CachingAgent, AccountAware {
 
   final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-  final String providerName = HuaweiCloudInfrastructureProvider.PROVIDER_NAME
+  final String providerName = HuaweiCloudInfrastructureProvider.name
 
   final HuaweiCloudNamedAccountCredentials credentials
   final ObjectMapper objectMapper
