@@ -16,23 +16,42 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.security
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.core.transport.Config
 import com.huawei.openstack4j.model.common.Identifier
 import com.huawei.openstack4j.model.identity.v3.Token
 import com.huawei.openstack4j.openstack.OSFactory
+import com.netflix.spinnaker.clouddriver.huaweicloud.client.AuthorizedClientProvider
 import groovy.util.logging.Slf4j
 
-public class HuaweiCloudCredentials {
+@Slf4j
+public class HuaweiCloudCredentials implements AuthorizedClientProvider {
+  final String username
+  @JsonIgnore
+  final String password
+  final String projectName
+  final String domainName
+  final String authUrl
+  final Boolean insecure
+
   Token token = null
 
-  OSClient buildClient(
-      String username,
-      String password,
-      String projectName,
-      String domainName,
-      String authUrl,
-      Boolean insecure) {
+  HuaweiCloudCredentials(String username,
+                         String password,
+                         String projectName,
+                         String domainName,
+                         String authUrl,
+                         Boolean insecure) {
+    this.username = username
+    this.password = password
+    this.projectName = projectName
+    this.domainName = domainName
+    this.authUrl = authUrl
+    this.insecure = insecure
+  }
+
+  OSClient getAuthClient() {
     def config = insecure ? Config.newConfig().withSSLVerificationDisabled() : Config.newConfig()
     def client = null
     try {

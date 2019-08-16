@@ -29,7 +29,7 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   private OSClient getRegionClient(String region) {
-    provider.authClient.useRegion(region)
+    this.provider.authClient.useRegion(region)
   }
 
   @Override
@@ -47,4 +47,3 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
     getRegionClient(region).vpc().subnets().list()
   }
 }
-

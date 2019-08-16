@@ -16,35 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.security
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.huawei.openstack4j.api.OSClient
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
-import com.netflix.spinnaker.clouddriver.huaweicloud.client.AuthorizedClientProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClientImpl
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
-class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials>, AuthorizedClientProvider {
+class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiCloudCredentials> {
   static final String CLOUD_PROVIDER = "huaweicloud"
 
   final String accountName
   final String environment
   final String accountType
-  final String username
-  @JsonIgnore
-  final String password
-  final String projectName
-  final String domainName
-  final String authUrl
   List<String> regions
-  final Boolean insecure
   final String asgConfigLocation
   final ConsulConfig consulConfig
   final String userDataFile
   Map<String, List<String>> regionToZones
   final List<String> requiredGroupMembership
   final HuaweiCloudCredentials credentials
-  final HuaweiCloudClient cloudClient = new HuaweiCloudClientImpl(this)
+  final HuaweiCloudClient cloudClient
 
   HuaweiCloudNamedAccountCredentials(String accountName,
                                      String environment,
@@ -54,8 +44,8 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
                                      String projectName,
                                      String domainName,
                                      String authUrl,
-                                     List<String> regions,
                                      Boolean insecure,
+                                     List<String> regions,
                                      String asgConfigLocation,
                                      ConsulConfig consulConfig,
                                      String userDataFile,
@@ -63,20 +53,22 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
-    this.username = username
-    this.password = password
-    this.projectName = projectName
-    this.domainName = domainName
-    this.authUrl = authUrl
     this.regions = regions
-    this.insecure = insecure
     this.asgConfigLocation = asgConfigLocation
     this.consulConfig = consulConfig
     this.userDataFile = userDataFile
     if (this.consulConfig?.enabled) {
       this.consulConfig.applyDefaults()
     }
-    this.credentials = new HuaweiCloudCredentials()
+    this.credentials = new HuaweiCloudCredentials(
+      username,
+      password,
+      projectName,
+      domainName,
+      authUrl,
+      insecure
+    )
+    this.cloudClient = new HuaweiCloudClientImpl(this.credentials)
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
   }
 
@@ -88,9 +80,5 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
   @Override
   String getName() {
     accountName
-  }
-
-  OSClient getAuthClient() {
-    credentials.buildClient(username, password, projectName, domainName, authUrl, insecure)
   }
 }
