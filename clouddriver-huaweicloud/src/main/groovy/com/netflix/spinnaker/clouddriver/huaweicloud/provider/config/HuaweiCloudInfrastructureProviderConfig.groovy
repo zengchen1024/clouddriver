@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudElasticIPCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.HuaweiCloudInfrastructureProvider
@@ -71,6 +72,7 @@ class HuaweiCloudInfrastructureProviderConfig {
         credentials.regions.each { String region ->
           newlyAddedAgents << new HuaweiCloudSubnetCachingAgent(credentials, objectMapper, region)
           newlyAddedAgents << new HuaweiCloudNetworkCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudElasticIPCachingAgent(credentials, objectMapper, region)
         }
       }
     }

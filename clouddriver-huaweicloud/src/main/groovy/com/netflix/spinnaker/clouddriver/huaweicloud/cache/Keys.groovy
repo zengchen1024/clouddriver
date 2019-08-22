@@ -28,6 +28,7 @@ class Keys {
     CLUSTERS,
     NETWORKS,
     SUBNETS,
+    ELASTIC_IPS,
     ON_DEMAND
 
     final String ns
@@ -84,6 +85,14 @@ class Keys {
             id: parts[4]]
         }
         break
+      case Namespace.ELASTIC_IPS.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
       default:
         return null
     }
@@ -105,5 +114,9 @@ class Keys {
 
   static String getSubnetKey(String subnetId, String account, String region) {
     "${ID}:${Namespace.SUBNETS}:${account}:${region}:${subnetId}"
+  }
+
+  static String getElasticIPKey(String ipId, String account, String region) {
+    "${ID}:${Namespace.ELASTIC_IPS}:${account}:${region}:${ipId}"
   }
 }
