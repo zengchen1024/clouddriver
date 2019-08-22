@@ -35,6 +35,7 @@ public class HuaweiCloudCredentials implements AuthorizedClientProvider {
   final String authUrl
   final Boolean insecure
 
+  @JsonIgnore
   Token token = null
 
   HuaweiCloudCredentials(String username,

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.security
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClientImpl
@@ -34,6 +35,7 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
   Map<String, List<String>> regionToZones
   final List<String> requiredGroupMembership
   final HuaweiCloudCredentials credentials
+  @JsonIgnore
   final HuaweiCloudClient cloudClient
 
   HuaweiCloudNamedAccountCredentials(String accountName,
