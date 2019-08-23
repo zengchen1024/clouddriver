@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
+import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
@@ -43,10 +44,17 @@ interface HuaweiCloudClient {
   List<Subnet> listSubnets(String region)
 
   /**
-   * List elastic ips.
+   * List elastic ips in a region.
    * @param region
    * @return
    */
   List<PublicIp> listElasticIps(String region)
+
+  /**
+   * List security groups in a region
+   * @param region
+   * @return
+   */
+  List<SecurityGroup> getSecurityGroups(String region)
 }
 
