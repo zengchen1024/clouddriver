@@ -20,6 +20,7 @@ import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.model.compute.RebootType
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
+import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
@@ -39,7 +40,7 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
 
   @Override
   void rebootInstance(String region, String instanceId) {
-    getRegionClient(region).compute().servers().reboot(instanceId, RebootType.SOFT)
+    getRegionClient(region).ecs().servers().reboot([instanceId], RebootType.SOFT)
   }
 
   @Override
@@ -75,5 +76,10 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<Image> getImages(String region) {
     getRegionClient(region).imsV2().images().list()
+  }
+
+  @Override
+  List<CloudServer> getInstances(String region) {
+    getRegionClient(region).ecs().servers().list()
   }
 }
