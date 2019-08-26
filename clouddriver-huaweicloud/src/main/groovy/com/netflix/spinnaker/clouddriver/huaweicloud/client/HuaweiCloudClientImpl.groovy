@@ -77,7 +77,13 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
 
   @Override
   List<Image> getImages(String region) {
-    getRegionClient(region).imsV2().images().list()
+    getRegionClient(region).imsV2().images().list(
+      [
+        "__imagetype": "public",
+        "status": "active",
+        "virtual_env_type": "FusionCompute"
+      ]
+    )
   }
 
   @Override

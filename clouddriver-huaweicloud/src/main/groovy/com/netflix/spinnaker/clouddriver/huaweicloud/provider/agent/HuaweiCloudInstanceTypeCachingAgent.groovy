@@ -36,7 +36,7 @@ class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCachingAgen
     AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set
 
-  String agentType = "${account.name}/${region}/${HuaweiCloudInstanceTypeCachingAgent.simpleName}"
+  String agentType = "${accountName}/${region}/${HuaweiCloudInstanceTypeCachingAgent.simpleName}"
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
@@ -48,7 +48,7 @@ class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCachingAgen
 
     List<Flavor> flavors = []
     zones.each {String zone ->
-      flavors.addAll(cloudClient.getFlavors(region, zone))
+      flavors.addAll(cloudClient.getInstanceTypes(region, zone))
     }
 
     buildCacheResult(flavors)

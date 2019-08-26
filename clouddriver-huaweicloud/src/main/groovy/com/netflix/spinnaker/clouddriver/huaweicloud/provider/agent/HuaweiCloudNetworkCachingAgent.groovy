@@ -29,7 +29,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.NETWORKS
 
 @Slf4j
-@groovy.transform.InheritConstructors
+@InheritConstructors
 class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
@@ -56,7 +56,7 @@ class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAgent {
       }
     }
 
-    log.info("Caching ${nacache.keepSize()} networks in ${agentType}")
+    log.info("Caching ${nscache.keepSize()} networks in ${agentType}")
 
     cacheResultBuilder.build()
   }

@@ -29,7 +29,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.ELASTIC_IPS
 
 @Slf4j
-@groovy.transform.InheritConstructors
+@InheritConstructors
 class HuaweiCloudElasticIPCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
@@ -48,7 +48,7 @@ class HuaweiCloudElasticIPCachingAgent extends AbstractHuaweiCloudCachingAgent {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
-    def nscache = cacheResultBuilder.namespace(Elastic_IPS.ns)
+    def nscache = cacheResultBuilder.namespace(ELASTIC_IPS.ns)
 
     ips.each { PublicIp ip ->
       nscache.keep(Keys.getElasticIPKey(ip.id, accountName, region)).with {

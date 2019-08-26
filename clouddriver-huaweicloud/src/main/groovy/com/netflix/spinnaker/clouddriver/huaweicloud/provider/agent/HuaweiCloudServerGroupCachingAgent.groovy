@@ -59,8 +59,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
   final OnDemandMetricsSupport metricsSupport
 
   HuaweiCloudServerGroupCachingAgent(HuaweiCloudNamedAccountCredentials credentials,
-                                     String region,
                                      ObjectMapper objectMapper,
+                                     String region,
                                      Registry registry) {
     super(credentials, objectMapper, region)
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${ID}:${ServerGroup}")

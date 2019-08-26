@@ -29,7 +29,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.IMAGES
 
 @Slf4j
-@groovy.transform.InheritConstructors
+@InheritConstructors
 class HuaweiCloudImageCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
