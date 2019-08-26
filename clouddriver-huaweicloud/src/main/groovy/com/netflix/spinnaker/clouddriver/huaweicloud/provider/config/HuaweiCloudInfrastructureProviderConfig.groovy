@@ -21,7 +21,12 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudElasticIPCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudImageCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudInstanceTypeCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudNetworkCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSecurityGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.HuaweiCloudInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
@@ -73,6 +78,11 @@ class HuaweiCloudInfrastructureProviderConfig {
           newlyAddedAgents << new HuaweiCloudSubnetCachingAgent(credentials, objectMapper, region)
           newlyAddedAgents << new HuaweiCloudNetworkCachingAgent(credentials, objectMapper, region)
           newlyAddedAgents << new HuaweiCloudElasticIPCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudImageCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudInstanceCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudInstanceTypeCachingAgent(credentials, objectMapper, region)
+          newlyAddedAgents << new HuaweiCloudSecurityGroupCachingAgent(credentials, objectMapper, region, registry)
+          newlyAddedAgents << new HuaweiCloudServerGroupCachingAgent(credentials, objectMapper, region, registry)
         }
       }
     }

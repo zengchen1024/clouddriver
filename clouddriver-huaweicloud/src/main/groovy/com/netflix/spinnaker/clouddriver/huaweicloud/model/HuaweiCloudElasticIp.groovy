@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.ElasticIp
 import groovy.transform.Immutable
 
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class HuaweiCloudElasticIp implements ElasticIp {
-  final String type = HuaweiCloudProvider.ID
+  final String type
   final String address
   final String attachedToId
   final String accountName

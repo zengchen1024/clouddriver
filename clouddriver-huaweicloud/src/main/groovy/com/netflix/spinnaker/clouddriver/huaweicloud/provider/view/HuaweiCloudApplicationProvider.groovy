@@ -24,12 +24,14 @@ import com.netflix.spinnaker.clouddriver.model.ApplicationProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudApplication
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.CLUSTERS
 
+@Slf4j
 @Component
 class HuaweiCloudApplicationProvider implements ApplicationProvider {
   final Cache cacheView
@@ -75,8 +77,11 @@ class HuaweiCloudApplicationProvider implements ApplicationProvider {
       }
     }
 
+    String appName = Keys.parse(cacheData.id).application
+    log.info("build application=${appName} from cache data")
+
     return new HuaweiCloudApplication(
-      name: Keys.parse(cacheData.id).application,
+      name: appName,
       attributes: [:],
       clusterNames:clusterNames
     )

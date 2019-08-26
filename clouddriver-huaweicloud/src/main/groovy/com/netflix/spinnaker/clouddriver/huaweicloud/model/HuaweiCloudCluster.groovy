@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
 import com.netflix.spinnaker.clouddriver.model.Cluster
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import groovy.transform.Canonical
 
 @Canonical
@@ -26,5 +25,5 @@ class HuaweiCloudCluster implements Cluster {
   String name
   Set<HuaweiCloudServerGroup> serverGroups = [].toSet()
   Set<HuaweiCloudLoadBalancer> loadBalancers = [].toSet()
-  String type = HuaweiCloudProvider.ID
+  String type
 }

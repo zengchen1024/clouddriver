@@ -24,12 +24,14 @@ import com.netflix.spinnaker.clouddriver.model.NetworkProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudNetwork
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.NETWORKS
 
 @Component
+@Slf4j
 class HuaweiCloudNetworkProvider implements NetworkProvider<HuaweiCloudNetwork>  {
 
   final Cache cacheView
@@ -51,6 +53,8 @@ class HuaweiCloudNetworkProvider implements NetworkProvider<HuaweiCloudNetwork> 
   }
 
   HuaweiCloudNetwork fromCacheData(CacheData cacheData) {
+    log.info("build network from cache data=${cacheData.attributes.network}")
+
     Map network = cacheData.attributes.network
     Map<String, String> parts = Keys.parse(cacheData.id)
 

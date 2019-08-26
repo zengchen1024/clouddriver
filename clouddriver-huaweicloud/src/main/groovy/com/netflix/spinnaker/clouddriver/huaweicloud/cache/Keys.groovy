@@ -29,6 +29,12 @@ class Keys {
     NETWORKS,
     SUBNETS,
     ELASTIC_IPS,
+    IMAGES,
+    SECURITY_GROUPS,
+    SERVER_GROUPS,
+    INSTANCE_TYPES,
+    INSTANCES,
+    LOAD_BALANCERS,
     ON_DEMAND
 
     final String ns
@@ -93,6 +99,61 @@ class Keys {
             id: parts[4]]
         }
         break
+      case Namespace.IMAGES.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
+      case Namespace.SECURITY_GROUPS.ns:
+        if (parts.length == 6) {
+          def names = Names.parseName(parts[4])
+          result << [
+            account: parts[2],
+            region: parts[3],
+            application: names.app,
+            name: parts[4],
+            id: parts[5]]
+        }
+        break
+      case Namespace.SERVER_GROUPS.ns:
+        def names = Names.parseName(parts[4])
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            application: names.app.toLowerCase(),
+            cluster: names.cluster,
+            name: parts[4]]
+        }
+        break
+      case Namespace.INSTANCE_TYPES.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
+      case Namespace.INSTANCES.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
+      case Namespace.LOAD_BALANCERS.ns:
+        if (parts.length == 6) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4],
+            name: parts[5]]
+        }
+        break
       default:
         return null
     }
@@ -118,5 +179,29 @@ class Keys {
 
   static String getElasticIPKey(String ipId, String account, String region) {
     "${ID}:${Namespace.ELASTIC_IPS}:${account}:${region}:${ipId}"
+  }
+
+  static String getImageKey(String imageId, String account, String region) {
+    "${ID}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+  }
+
+  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String account, String region) {
+    "${ID}:${Namespace.SECURITY_GROUPS}:${account}:${region}:${securityGroupName}:${securityGroupId}"
+  }
+
+  static String getServerGroupKey(String serverGroupName, String account, String region) {
+    "${ID}:${Namespace.SERVER_GROUPS}:${account}:${region}:${serverGroupName}"
+  }
+
+  static String getInstanceTypeKey(String instanceType, String account, String region) {
+    "${ID}:${Namespace.INSTANCE_TYPES}:${account}:${region}:${instanceType}"
+  }
+
+  static String getInstanceKey(String instanceId, String account, String region) {
+    "${ID}:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+  }
+
+  static String getLoadBalancerKey(String loadBalancerName, String loadBalancerId, String account, String region) {
+    "${ID}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerId}:${loadBalancerName}"
   }
 }

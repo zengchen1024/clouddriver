@@ -25,12 +25,14 @@ import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudSubnet
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SUBNETS
 
 @Component
+@Slf4j
 class HuaweiCloudSubnetProvider implements SubnetProvider<HuaweiCloudSubnet> {
   final Cache cacheView
   final ObjectMapper objectMapper
@@ -51,6 +53,8 @@ class HuaweiCloudSubnetProvider implements SubnetProvider<HuaweiCloudSubnet> {
   }
 
   HuaweiCloudSubnet fromCacheData(CacheData cacheData) {
+    log.info("build subnet from cache data=${cacheData.attributes.subnet}")
+
     Map subnet = cacheData.attributes.subnet
     Map<String, String> parts = Keys.parse(cacheData.id)
 

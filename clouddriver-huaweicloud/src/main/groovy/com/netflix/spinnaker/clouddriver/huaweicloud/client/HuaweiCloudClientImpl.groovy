@@ -79,7 +79,7 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   List<Image> getImages(String region) {
     getRegionClient(region).imsV2().images().list(
       [
-        "__imagetype": "public",
+        "__imagetype": "gold",
         "status": "active",
         "virtual_env_type": "FusionCompute"
       ]
