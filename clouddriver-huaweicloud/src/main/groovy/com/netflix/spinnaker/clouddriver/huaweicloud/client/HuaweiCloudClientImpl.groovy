@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.model.compute.RebootType
+import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
@@ -57,5 +59,14 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<SecurityGroup> getSecurityGroups(String region) {
     getRegionClient(region).vpc().securityGroups().list()
+  }
+
+  @Override
+  List<? extends ScalingGroup> getScalingGroups(String region) {
+    getRegionClient(region).autoScaling().groups().list()
+  }
+
+  List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId) {
+    getRegionClient(region).autoScaling().groupInstances().list(groupId)
   }
 }
