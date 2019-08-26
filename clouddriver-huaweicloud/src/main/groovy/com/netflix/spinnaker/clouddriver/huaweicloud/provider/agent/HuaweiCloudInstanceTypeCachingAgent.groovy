@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent
 
-import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
+import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -26,37 +26,47 @@ import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SUBNETS
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.INSTANCE_TYPES
 
 @Slf4j
 @InheritConstructors
-class HuaweiCloudSubnetCachingAgent extends AbstractHuaweiCloudCachingAgent {
+class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCachingAgent {
 
   final Set<AgentDataType> providedDataTypes = [
-    AUTHORITATIVE.forType(SUBNETS.ns)
+    AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set
 
-  String agentType = "${accountName}/${region}/${HuaweiCloudSubnetCachingAgent.simpleName}"
+  String agentType = "${account.name}/${region}/${HuaweiCloudInstanceTypeCachingAgent.simpleName}"
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<Subnet> subnets = cloudClient.listSubnets(region)
-    buildCacheResult(subnets)
+    List<String> zones = credentials.regionToZones.get(region)
+    if (!zones) {
+      log.info("no availability zones for region=${region}")
+      return null
+    }
+
+    List<Flavor> flavors = []
+    zones.each {String zone ->
+      flavors.addAll(cloudClient.getFlavors(region, zone))
+    }
+
+    buildCacheResult(flavors)
   }
 
-  private CacheResult buildCacheResult(List<Subnet> subnets) {
+  private CacheResult buildCacheResult(List<Flavor> flavors) {
     log.info("Describing items in ${agentType}")
 
     def cacheResultBuilder = new CacheResultBuilder()
-    def nscache = cacheResultBuilder.namespace(SUBNETS.ns)
+    def nscache = cacheResultBuilder.namespace(INSTANCE_TYPES.ns)
 
-    subnets?.each { Subnet subnet ->
-      nscache.keep(Keys.getSubnetKey(subnet.id, accountName, region)).with {
-        attributes.subnet = subnet
+    flavors?.each { Flavor flavor ->
+      nscache.keep(Keys.getInstanceTypeKey(flavor.id, accountName, region)).with {
+        attributes.flavor = flavor
       }
     }
 
-    log.info("Caching ${nscache.keepSize()} subnets in ${agentType}")
+    log.info("Caching ${nscache.keepSize()} instance types in ${agentType}")
 
     cacheResultBuilder.build()
   }

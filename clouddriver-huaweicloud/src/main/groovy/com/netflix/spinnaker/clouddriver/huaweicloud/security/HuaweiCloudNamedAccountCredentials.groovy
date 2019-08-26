@@ -72,6 +72,9 @@ class HuaweiCloudNamedAccountCredentials implements AccountCredentials<HuaweiClo
     )
     this.cloudClient = new HuaweiCloudClientImpl(this.credentials)
     this.requiredGroupMembership = requiredGroupMembership ?: [] as List<String>
+    this.regionToZones = regions.collectEntries { region ->
+      [(region): cloudClient.getZones(region).findAll { zone -> zone.zoneState.available }.collect { zone -> zone.zoneName}]
+    }
   }
 
   @Override

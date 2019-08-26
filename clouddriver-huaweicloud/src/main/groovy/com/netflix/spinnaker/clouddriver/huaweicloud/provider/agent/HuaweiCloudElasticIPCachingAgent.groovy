@@ -51,14 +51,12 @@ class HuaweiCloudElasticIPCachingAgent extends AbstractHuaweiCloudCachingAgent {
     def nscache = cacheResultBuilder.namespace(Elastic_IPS.ns)
 
     ips.each { PublicIp ip ->
-      String ipKey = Keys.getElasticIPKey(ip.id, accountName, region)
-
-      nscache.keep(ipKey).with {
+      nscache.keep(Keys.getElasticIPKey(ip.id, accountName, region)).with {
         attributes.eip = ip
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(ELASTIC_IPS.ns).keepSize()} elastic ips in ${agentType}")
+    log.info("Caching ${nscache.keepSize()} elastic ips in ${agentType}")
 
     cacheResultBuilder.build()
   }

@@ -57,7 +57,7 @@ class HuaweiCloudImageCachingAgent extends AbstractHuaweiCloudCachingAgent {
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(IMAGES.ns).keepSize()} images in ${agentType}")
+    log.info("Caching ${nscache.keepSize()} images in ${agentType}")
 
     cacheResultBuilder.build()
   }

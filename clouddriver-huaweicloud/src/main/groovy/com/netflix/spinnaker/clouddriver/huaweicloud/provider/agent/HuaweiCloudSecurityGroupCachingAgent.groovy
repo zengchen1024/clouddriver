@@ -93,9 +93,9 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    log.debug("Handling on-demand cache update; account=${accountName}, region=${region}, data=${data}")
+    log.debug("Handling security group on-demand cache update; account=${accountName}, region=${region}, data=${data}")
 
-    if (!data.containsKey('securityGroupName') || data.account != accountName || data.region != region) {
+    if (!(data.containsKey('securityGroupName') && data.account == accountName && data.region == region)) {
       return null
     }
 
@@ -108,9 +108,9 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
           return groups.first()
         }
 
-        log.warn("There is not only one security group with name(${name}) in region ${region}")
+        log.warn("There is not only one security group with name=${name} in region=${region}")
       } catch (Exception e) {
-        log.error("Failed to find security group with name(${name})", e)
+        log.error("Failed to find security group with name=${name} in region=${region}", e)
       }
       return null
     }
@@ -122,7 +122,7 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
       )
     }
 
-    def result = new OnDemandResult()
+    def result = new OnDemandAgent.OnDemandResult()
     result.sourceAgentType = onDemandAgentType
     result.cacheResult = cacheResult
 
@@ -133,7 +133,7 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
       identifiers = providerCache.filterIdentifiers(SECURITY_GROUPS.ns, key)
 
       if (!(identifiers && identifiers.size() == 1)) {
-        log.error("There is not only one identifier for key(${key})")
+        log.error("There is not only one identifier for key=${key}")
         return result
       }
     }
@@ -144,7 +144,7 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
       OnDemandCacheUtils.saveOnDemandCache(cacheResult, objectMapper, metricsSupport, providerCache, key)
     }
 
-    log.info("On demand cache refresh succeeded. Data: ${data}. Add ${securityGroup ? 1 : 0} security group to cache.")
+    log.info("On demand cache refresh succeeded. Data=${data}. Add ${securityGroup ? 1 : 0} security group to cache.")
 
     if (!securityGroup) {
       result.evictions[SECURITY_GROUPS.ns] = identifiers

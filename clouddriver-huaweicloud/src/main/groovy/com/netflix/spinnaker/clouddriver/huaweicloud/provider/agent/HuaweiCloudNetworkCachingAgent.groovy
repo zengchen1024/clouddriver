@@ -51,14 +51,12 @@ class HuaweiCloudNetworkCachingAgent extends AbstractHuaweiCloudCachingAgent {
     def nscache = cacheResultBuilder.namespace(NETWORKS.ns)
 
     vpcs.each { Vpc vpc ->
-      String networkKey = Keys.getNetworkKey(vpc.id, accountName, region)
-
-      nscache.keep(networkKey).with {
+      nscache.keep(Keys.getNetworkKey(vpc.id, accountName, region)).with {
         attributes.network = vpc
       }
     }
 
-    log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} networks in ${agentType}")
+    log.info("Caching ${nacache.keepSize()} networks in ${agentType}")
 
     cacheResultBuilder.build()
   }
