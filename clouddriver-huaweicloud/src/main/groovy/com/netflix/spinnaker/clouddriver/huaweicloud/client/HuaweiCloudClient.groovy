@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
+import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
@@ -73,5 +74,12 @@ interface HuaweiCloudClient {
    * @return
    */
   List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId)
+
+  /**
+   * List images in a region
+   * @param region
+   * @return
+   */
+  List<Image> getImages(String region)
 }
 
