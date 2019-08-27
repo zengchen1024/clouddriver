@@ -46,6 +46,8 @@ class HuaweiCloudInstanceTypeCachingAgent extends AbstractHuaweiCloudCachingAgen
       return null
     }
 
+    log.info("Load instance types from zones=${zones}")
+
     List<Flavor> flavors = []
     zones.each {String zone ->
       flavors.addAll(cloudClient.getInstanceTypes(region, zone))

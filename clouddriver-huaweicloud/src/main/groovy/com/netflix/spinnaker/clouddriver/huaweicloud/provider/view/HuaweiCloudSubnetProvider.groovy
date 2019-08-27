@@ -47,14 +47,16 @@ class HuaweiCloudSubnetProvider implements SubnetProvider<HuaweiCloudSubnet> {
 
   @Override
   Set<HuaweiCloudSubnet> getAll() {
-    Collection<String> filters = cacheView.filterIdentifiers(SUBNETS.ns, Keys.getSubnetKey('*', '*', '*'))
-    Collection<CacheData> data = cacheView.getAll(SUBNETS.ns, filters, RelationshipCacheFilter.none())
-    !data ? Sets.newHashSet() : data.collect(this.&fromCacheData)
+    Collection<CacheData> data = cacheView.getAll(
+      SUBNETS.ns,
+      cacheView.filterIdentifiers(SUBNETS.ns, Keys.getSubnetKey('*', '*', '*')),
+      RelationshipCacheFilter.none())
+
+    log.info("build subnet from cache, has cache data?={}", data ? "yes" : "no")
+    data ? data.collect(this.&fromCacheData) : [] as Set
   }
 
   HuaweiCloudSubnet fromCacheData(CacheData cacheData) {
-    log.info("build subnet from cache data=${cacheData.attributes.subnet}")
-
     Map subnet = cacheData.attributes.subnet
     Map<String, String> parts = Keys.parse(cacheData.id)
 

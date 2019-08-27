@@ -20,52 +20,45 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.model.NetworkProvider
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
+import com.netflix.spinnaker.clouddriver.model.InstanceTypeProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
-import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudNetwork
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudInstanceType
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.NETWORKS
-
 @Component
 @Slf4j
-class HuaweiCloudNetworkProvider implements NetworkProvider<HuaweiCloudNetwork>  {
+class HuaweiCloudInstanceTypeProvider implements InstanceTypeProvider<HuaweiCloudInstanceType> {
 
   final Cache cacheView
   final ObjectMapper objectMapper
 
-  String cloudProvider = HuaweiCloudProvider.ID
-
   @Autowired
-  HuaweiCloudNetworkProvider(Cache cacheView, ObjectMapper objectMapper) {
+  HuaweiCloudInstanceTypeProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
-  Set<HuaweiCloudNetwork> getAll() {
+  Set<HuaweiCloudInstanceType> getAll() {
     Collection<CacheData> data = cacheView.getAll(
-      NETWORKS.ns,
-      cacheView.filterIdentifiers(NETWORKS.ns, Keys.getNetworkKey('*', '*', '*')),
+      Keys.Namespace.INSTANCE_TYPES.ns,
+      cacheView.filterIdentifiers(Keys.Namespace.INSTANCE_TYPES.ns, Keys.getInstanceTypeKey('*', '*', '*')),
       RelationshipCacheFilter.none())
 
-    log.info("build network from cache, has cache data?={}", data ? "yes" : "no")
+    log.info("build instance type from cache, has cache data?={}", data ? "yes" : "no")
     data ? data.collect(this.&fromCacheData) : [] as Set
   }
 
-  HuaweiCloudNetwork fromCacheData(CacheData cacheData) {
-    Map network = cacheData.attributes.network
+  HuaweiCloudInstanceType fromCacheData(CacheData cacheData) {
+    Map flavor = cacheData.attributes.flavor
     Map<String, String> parts = Keys.parse(cacheData.id)
 
-    return new HuaweiCloudNetwork(
-      cloudProvider: this.cloudProvider,
-      id: parts.id,
+    return new HuaweiCloudInstanceType(
       region: parts.region,
       account: parts.account,
-      name: network.name
+      name: flavor.name
     )
   }
 }

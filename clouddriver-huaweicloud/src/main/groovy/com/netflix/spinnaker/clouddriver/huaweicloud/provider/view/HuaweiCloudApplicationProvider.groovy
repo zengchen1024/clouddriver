@@ -50,7 +50,7 @@ class HuaweiCloudApplicationProvider implements ApplicationProvider {
 
     Collection<CacheData> data = cacheView.getAll(
       APPLICATIONS.ns,
-      cacheView.filterIdentifiers(APPLICATIONS.ns, "${HuaweiCloudProvider.ID}:*"),
+      cacheView.filterIdentifiers(APPLICATIONS.ns, Keys.getApplicationKey('*')),
       filter
     )
     data.collect(this.&fromCacheData)
@@ -64,6 +64,7 @@ class HuaweiCloudApplicationProvider implements ApplicationProvider {
 
   HuaweiCloudApplication fromCacheData(CacheData cacheData) {
     if (!cacheData) {
+      log.info("build application failed, the cache data is empty")
       return null
     }
 
