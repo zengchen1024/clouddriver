@@ -19,15 +19,27 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.provider
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 
 import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.*
 
 class HuaweiCloudInfrastructureProvider extends AgentSchedulerAware implements SearchableProvider {
 
   final String providerName = HuaweiCloudInfrastructureProvider.name
   final Collection<Agent> agents
 
-  final Set<String> defaultCaches = [].toSet()
+  final Set<String> defaultCaches = [
+    APPLICATIONS.ns,
+    CLUSTERS.ns,
+    NETWORKS.ns,
+    SUBNETS.ns,
+    INSTANCES.ns,
+    SECURITY_GROUPS.ns,
+    SERVER_GROUPS.ns,
+    INSTANCE_TYPES.ns,
+    LOAD_BALANCERS.ns
+  ].asImmutable()
 
   //TODO - Need to define urlMappingTemplates
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
@@ -41,6 +53,6 @@ class HuaweiCloudInfrastructureProvider extends AgentSchedulerAware implements S
 
   @Override
   Map<String, String> parseKey(String key) {
-    null
+    Keys.parse(key)
   }
 }

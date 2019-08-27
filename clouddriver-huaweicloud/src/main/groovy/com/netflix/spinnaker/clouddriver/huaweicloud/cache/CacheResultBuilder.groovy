@@ -44,24 +44,25 @@ class CacheResultBuilder {
     Map<String, Collection<CacheData>> keep = [:]
     Map<String, Collection<String>> evict = [:]
 
-    if (!onDemand.toKeep.empty) {
+    if (!onDemand.toKeep.isEmpty()) {
       keep[(ON_DEMAND.ns)] = onDemand.toKeep.values()
     }
 
-    if (!onDemand.toEvict.empty) {
+    if (!onDemand.toEvict.isEmpty()) {
       evict[(ON_DEMAND.ns)] = onDemand.toEvict
     }
 
     namespaceBuilders.each { String namespace, NamespaceCache item ->
-      if (!item.toKeep.empty) {
+      if (!item.toKeep.isEmpty()) {
         keep[(namespace)] = item.keepValues()
       }
 
-      if (!item.toEvict.empty) {
+      if (!item.toEvict.isEmpty()) {
         evict[(namespace)] = item.toEvict
       }
     }
 
+    log.info("build default cache result, keep has ${keep.size()} and evict has ${evict.size()} items")
     new DefaultCacheResult(keep, evict)
   }
 
