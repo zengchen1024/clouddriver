@@ -18,21 +18,21 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.UpsertSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.DeleteSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@HuaweiCloudOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
+@HuaweiCloudOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component
-class UpsertSecurityGroupDescriptionValidator extends AbstractDescriptionValidator<UpsertSecurityGroupDescription> {
+class DeleteSecurityGroupDescriptionValidator extends AbstractDescriptionValidator<DeleteSecurityGroupDescription> {
 
-  static final int MIN_PORT = -1
-  static final int MAX_PORT = (1 << 16) - 1
-
-  String context = "upsertSecurityGroupDescription"
+  String context = "deleteSecurityGroupDescription"
 
   @Override
-  void validateMore(List priorDescriptions, UpsertSecurityGroupDescription description, Errors errors) {
+  void validateMore(List priorDescriptions, DeleteSecurityGroupDescription description, Errors errors) {
+    def helper = new ValidateHelper(context, errors)
+
+    helper.validateUUID(description.id, "id")
   }
 }

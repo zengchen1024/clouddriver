@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.AbstractHuaweiCloudCredentialsDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesRegistrationDescription
 import org.springframework.validation.Errors
@@ -47,5 +48,17 @@ class DiscriptionValidatorHelper {
       errors.rejectValue("region", "${context}.region.invalid")
     }
     // validate weight
+  }
+
+  static private boolean validateRegion(ValidateHelper helper, Class <? extends AbstractHuaweiCloudCredentialsDescription> description, String region) {
+    if (!helper.validateNotEmpty(region, 'region')) {
+      return false
+    }
+
+    if (!description.credentials.regions.contains(region)) {
+      //errors.rejectValue("region", "${context}.region.invalid")
+      return false
+    }
+    return true
   }
 }

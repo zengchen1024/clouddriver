@@ -40,4 +40,24 @@ class ValidateHelper {
     errors.rejectValue(attribute, "${context}.${part}.empty")
     return false
   }
+
+  /**
+   * Validate if string is a valid UUID id.
+   * @param value
+   * @param attribute
+   * @return
+   */
+  boolean validateUUID(String value, String attribute) {
+    if (!(validateNotEmpty(value, attribute))) {
+      return false
+    }
+
+    try {
+      UUID.fromString(value)
+      return true
+    } catch (IllegalArgumentException e) {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notUUID")
+    }
+    return false
+  }
 }

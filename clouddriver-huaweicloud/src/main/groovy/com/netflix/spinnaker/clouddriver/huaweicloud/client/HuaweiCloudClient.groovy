@@ -128,6 +128,14 @@ interface HuaweiCloudClient {
   SecurityGroup getSecurityGroup(String region, String groupId)
 
   /**
+   * Delete a security group in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+  ActionResponse deleteSecurityGroup(String region, String groupId)
+
+  /**
    * Delete a security group rule in a region
    * @param region
    * @param ruleId

@@ -118,6 +118,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  ActionResponse deleteSecurityGroup(String region, String groupId) {
+    getRegionClient(region).vpc().securityGroups().delete(groupId)
+  }
+
+  @Override
   ActionResponse deleteSecurityGroupRule(String region, String ruleId) {
     getRegionClient(region).vpc().securityGroups().deleteSecurityGroupRule(ruleId)
   }
