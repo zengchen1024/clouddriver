@@ -91,7 +91,7 @@ class HuaweiCloudInfrastructureProviderConfig {
       ProviderUtils.rescheduleAgents(infastructureProvider, newlyAddedAgents)
     }
 
-    if (!newlyAddedAgents.isEmpty()) {
+    if (newlyAddedAgents) {
       infastructureProvider.agents.addAll(newlyAddedAgents)
     }
   }

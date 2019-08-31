@@ -36,8 +36,7 @@ class HuaweiCloudNetworkProvider implements NetworkProvider<HuaweiCloudNetwork> 
 
   final Cache cacheView
   final ObjectMapper objectMapper
-
-  String cloudProvider = HuaweiCloudProvider.ID
+  final String cloudProvider = HuaweiCloudProvider.ID
 
   @Autowired
   HuaweiCloudNetworkProvider(Cache cacheView, ObjectMapper objectMapper) {

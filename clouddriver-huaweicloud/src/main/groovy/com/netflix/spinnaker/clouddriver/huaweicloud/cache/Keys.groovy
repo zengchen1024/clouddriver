@@ -67,6 +67,9 @@ class Keys {
       case Namespace.CLUSTERS.ns:
         if (parts.length == 5) {
           def names = Names.parseName(parts[4])
+          if (!(names.stack && names.detail)) {
+            break
+          }
           result << [
             application: parts[3].toLowerCase(),
             account: parts[2],
@@ -110,6 +113,9 @@ class Keys {
       case Namespace.SECURITY_GROUPS.ns:
         if (parts.length == 6) {
           def names = Names.parseName(parts[4])
+          if (!names.app) {
+            break
+          }
           result << [
             account: parts[2],
             region: parts[3],
@@ -119,8 +125,11 @@ class Keys {
         }
         break
       case Namespace.SERVER_GROUPS.ns:
-        def names = Names.parseName(parts[4])
         if (parts.length == 5) {
+          def names = Names.parseName(parts[4])
+          if (!(names.app && names.cluster)) {
+            break
+          }
           result << [
             account: parts[2],
             region: parts[3],

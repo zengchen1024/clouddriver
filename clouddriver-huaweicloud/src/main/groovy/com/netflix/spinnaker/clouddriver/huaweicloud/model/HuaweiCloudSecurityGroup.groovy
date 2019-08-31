@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
@@ -28,14 +27,15 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class HuaweiCloudSecurityGroup implements SecurityGroup {
-  final String type = HuaweiCloudProvider.ID
-  final String cloudProvider = HuaweiCloudProvider.ID
+  final String type
+  final String cloudProvider
 
   final String id
   final String name
   final String region
   final String application
   final String accountName
+  final String vpcId
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
 
@@ -43,6 +43,6 @@ class HuaweiCloudSecurityGroup implements SecurityGroup {
 
   @Override
   SecurityGroupSummary getSummary() {
-    new HuaweiCloudSecurityGroupSummary(name: name, id: id)
+    new HuaweiCloudSecurityGroupSummary(name: this.name, id: this.id)
   }
 }
