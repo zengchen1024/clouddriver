@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.api.OSClient
+import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
 import com.huawei.openstack4j.model.compute.RebootType
 import com.huawei.openstack4j.model.scaling.ScalingGroup
@@ -26,6 +27,8 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
+import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
+import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupRule
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
@@ -58,11 +61,6 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<PublicIp> listElasticIps(String region) {
     getRegionClient(region).vpc().publicips().list()
-  }
-
-  @Override
-  List<SecurityGroup> getSecurityGroups(String region) {
-    getRegionClient(region).vpc().securityGroups().list()
   }
 
   @Override
@@ -99,5 +97,33 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<? extends AvailabilityZone> getZones(String region) {
     getRegionClient(region).compute().zones().list()
+  }
+
+  @Override
+  List<SecurityGroup> getSecurityGroups(String region) {
+    getRegionClient(region).vpc().securityGroups().list()
+  }
+
+  @Override
+  SecurityGroup createSecurityGroup(String region, String name, String vpcId) {
+    getRegionClient(region).vpc().securityGroups().create(
+      SecurityGroupCreate.builder()
+        .name(name).vpcId(vpcId).build()
+    )
+  }
+
+  @Override
+  SecurityGroup getSecurityGroup(String region, String groupId) {
+    getRegionClient(region).vpc().securityGroups().get(groupId)
+  }
+
+  @Override
+  ActionResponse deleteSecurityGroupRule(String region, String ruleId) {
+    getRegionClient(region).vpc().securityGroups().deleteSecurityGroupRule(ruleId)
+  }
+
+  @Override
+  SecurityGroupRule createSecurityGroupRule(String region, SecurityGroupRule rule) {
+    getRegionClient(region).vpc().securityGroups().createSecurityGroupRule(rule)
   }
 }

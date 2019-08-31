@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
+import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
@@ -24,6 +25,8 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
+import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
+import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupRule
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Subnet
 import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc
 
@@ -106,4 +109,37 @@ interface HuaweiCloudClient {
    * @return
    */
   List<? extends AvailabilityZone> getZones(String region)
+
+  /**
+   * Create a security group in a region
+   * @param region
+   * @param name
+   * @param vpcId
+   * @return
+   */
+  SecurityGroup createSecurityGroup(String region, String name, String vpcId)
+
+  /**
+   * Get a security group in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+  SecurityGroup getSecurityGroup(String region, String groupId)
+
+  /**
+   * Delete a security group rule in a region
+   * @param region
+   * @param ruleId
+   * @return
+   */
+  ActionResponse deleteSecurityGroupRule(String region, String ruleId)
+
+  /**
+   * Create a security group rule in a region
+   * @param region
+   * @param rule
+   * @return
+   */
+  SecurityGroupRule createSecurityGroupRule(String region, SecurityGroupRule rule)
 }

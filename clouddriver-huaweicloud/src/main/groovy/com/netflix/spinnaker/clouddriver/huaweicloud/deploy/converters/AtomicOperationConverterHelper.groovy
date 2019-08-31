@@ -20,8 +20,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
+import groovy.util.logging.Slf4j
 
-
+@Slf4j
 class AtomicOperationConverterHelper {
 
   static <T extends CredentialsNameable> T convertDescription(
@@ -29,13 +30,13 @@ class AtomicOperationConverterHelper {
       AbstractAtomicOperationsCredentialsSupport credentialsSupport,
       Class<T> targetDescriptionType) {
 
-    if (!input.accountName) {
-      input.accountName = input.credentials
+    if (!input.account) {
+      input.account = input.credentials
     }
 
     def credentials = null
-    if (input.accountName) {
-      credentials = credentialsSupport.getCredentialsObject(input.accountName as String)
+    if (input.account) {
+      credentials = credentialsSupport.getCredentialsObject(input.account as String)
     }
 
     input.remove('credentials')
@@ -46,6 +47,10 @@ class AtomicOperationConverterHelper {
       .convertValue(input, targetDescriptionType)
 
     converted.credentials = credentials in HuaweiCloudNamedAccountCredentials ? credentials : null
+    if (!converted.credentials) {
+      log.error("Convert input=${input} to description=${targetDescriptionType.name} failed, the credentials is null.")
+    }
+
     converted
   }
 }
