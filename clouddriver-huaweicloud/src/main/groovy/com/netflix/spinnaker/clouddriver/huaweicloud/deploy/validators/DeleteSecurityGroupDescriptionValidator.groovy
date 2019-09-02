@@ -31,8 +31,8 @@ class DeleteSecurityGroupDescriptionValidator extends AbstractDescriptionValidat
 
   @Override
   void validateMore(List priorDescriptions, DeleteSecurityGroupDescription description, Errors errors) {
-    def helper = new ValidateHelper(context, errors)
+    // def helper = new ValidateHelper(context, errors)
 
-    helper.validateUUID(description.id, "id")
+    // helper.validateUUID(description.id, "id")
   }
 }

@@ -73,7 +73,7 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
         "Could not find securityGroup=$description.id in region=$description.region")
     }
 
-    securityGroup.rules.each { rule ->
+    securityGroup.securityGroupRules.each { rule ->
       task.updateStatus BASE_PHASE, "Deleting rule=${rule.id}"
 
       cloudClient.deleteSecurityGroupRule(description.region, rule.id)
@@ -91,10 +91,12 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
     def builder =  SecurityGroupRule.builder()
       .securityGroupId(securityGroupId)
       .direction("ingress")
-      .ethertype("IPv4")
-      .protocol(rule.protocol.toLowerCase())
       .portRangeMin(rule.protocol.toLowerCase() == "icmp" ? rule.icmpType : rule.fromPort)
       .portRangeMax(rule.protocol.toLowerCase() == "icmp" ? rule.icmpCode : rule.toPort)
+
+    if (rule.protocol) {
+      builder.protocol(rule.protocol.toLowerCase())
+    }
 
     if (rule.cidr) {
       builder.remoteIpPrefix(rule.cidr)
