@@ -27,9 +27,11 @@ class UpsertSecurityGroupDescription extends AbstractHuaweiCloudCredentialsDescr
     String id
     String protocol
     String etherType
-    Integer portRangeMin
-    Integer portRangeMax
+    Integer fromPort // portRangeMin for tcp and udp
+    Integer toPort   // portRangeMax for tcp and udp
+    Integer icmpType // portRangeMin for icmp
+    Integer icmpCode // portRangeMax for icmp
+    String cidr      // remoteIpPrefix
     String remoteSecurityGroupId
-    String remoteIpPrefix
   }
 }

@@ -57,6 +57,7 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
     description.rules.each { rule ->
       createSecurityGroupRule(securityGroup.id, rule)
     }
+    return
   }
 
   private Void updateSecurityGroup() {
@@ -81,23 +82,31 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
     description.rules.each { rule ->
       createSecurityGroupRule(description.id, rule)
     }
+    return
   }
 
   private Void createSecurityGroupRule(String securityGroupId, UpsertSecurityGroupDescription.Rule rule) {
     TaskAware.task.updateStatus BASE_PHASE, "Creating rule for ${rule.cidr} from port ${rule.fromPort} to port ${rule.toPort}"
 
+    def builder =  SecurityGroupRule.builder()
+      .securityGroupId(securityGroupId)
+      .direction("ingress")
+      .ethertype("IPv4")
+      .protocol(rule.protocol.toLowerCase())
+      .portRangeMin(rule.protocol.toLowerCase() == "icmp" ? rule.icmpType : rule.fromPort)
+      .portRangeMax(rule.protocol.toLowerCase() == "icmp" ? rule.icmpCode : rule.toPort)
+
+    if (rule.cidr) {
+      builder.remoteIpPrefix(rule.cidr)
+    }
+
+    if (rule.remoteSecurityGroupId) {
+      builder.remoteGroupId(rule.remoteSecurityGroupId)
+    }
+
     description.credentials.cloudClient.createSecurityGroupRule(
-      description.region,
-      SecurityGroupRule.builder()
-        .securityGroupId(securityGroupId)
-        .direction("ingress")
-        .ethertype("IPv4")
-        .protocol(rule.protocol)
-        .portRangeMin(rule.portRangeMin)
-        .portRangeMax(rule.portRangeMax)
-        .remoteIpPrefix(rule.remoteIpPrefix)
-        .remoteGroupId(rule.remoteSecurityGroupId)
-        .build()
+      description.region, builder.build()
     )
+    return
   }
 }
