@@ -74,9 +74,10 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
     }
 
     securityGroup.securityGroupRules.each { rule ->
-      task.updateStatus BASE_PHASE, "Deleting rule=${rule.id}"
-
-      cloudClient.deleteSecurityGroupRule(description.region, rule.id)
+      if (rule.protocol) {
+        task.updateStatus BASE_PHASE, "Deleting rule=${rule.id}"
+        cloudClient.deleteSecurityGroupRule(description.region, rule.id)
+      }
     }
 
     description.rules.each { rule ->
@@ -88,7 +89,7 @@ class UpsertSecurityGroupOperation implements AtomicOperation<Void> {
   private Void createSecurityGroupRule(String securityGroupId, UpsertSecurityGroupDescription.Rule rule) {
     TaskAware.task.updateStatus BASE_PHASE, "Creating rule for ${rule.cidr} from port ${rule.fromPort} to port ${rule.toPort}"
 
-    def builder =  SecurityGroupRule.builder()
+    def builder = SecurityGroupRule.builder()
       .securityGroupId(securityGroupId)
       .direction("ingress")
       .portRangeMin(rule.protocol.toLowerCase() == "icmp" ? rule.icmpType : rule.fromPort)
