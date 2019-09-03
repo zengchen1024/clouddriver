@@ -157,15 +157,22 @@ class HuaweiCloudSecurityGroupCachingAgent extends AbstractHuaweiCloudCachingAge
 
     def nscache = cacheResultBuilder.namespace(SECURITY_GROUPS.ns)
 
+    Map<String, String> allGroupKeys = securityGroups.collectEntries {
+      [(it.id): Keys.getSecurityGroupKey(it.name, it.id, accountName, region)]
+    }
+
     securityGroups.each { item ->
       log.debug("Caching security group for account ${accountName} in region ${region}: ${item}")
 
-      String key = Keys.getSecurityGroupKey(item.name, item.id, accountName, region)
+      String key = allGroupKeys.get(item.id)
 
       if (OnDemandCacheUtils.shouldUseOnDemandData(cacheResultBuilder, key)) {
         OnDemandCacheUtils.moveOnDemandDataToNamespace(objectMapper, cacheResultBuilder, key)
       } else {
-        nscache.keep(key).with { attributes.security_group = item }
+        nscache.keep(key).with {
+          attributes.securityGroup = item
+          attributes.allGroupKeys = allGroupKeys
+        }
       }
     }
 

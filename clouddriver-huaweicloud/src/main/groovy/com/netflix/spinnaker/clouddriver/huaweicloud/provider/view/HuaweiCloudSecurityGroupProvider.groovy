@@ -51,36 +51,48 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
 
   @Override
   Set<HuaweiCloudSecurityGroup> getAll(boolean includeRules) {
-    loadResults(Keys.getSecurityGroupKey('*', '*', '*', '*'), includeRules)
+    def result = loadResults(Keys.getSecurityGroupKey('*', '*', '*', '*'), includeRules)
+    log.info("get all security group, return ${result ? result.size() : 0} groups")
+    result
   }
 
   @Override
   Set<HuaweiCloudSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    loadResults(Keys.getSecurityGroupKey('*', '*', '*', region), includeRules)
+    def result = loadResults(Keys.getSecurityGroupKey('*', '*', '*', region), includeRules)
+    log.info("get all security group by region=${region}, return ${result ? result.size() : 0} groups")
+    result
   }
 
   @Override
   Set<HuaweiCloudSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    loadResults(Keys.getSecurityGroupKey('*', '*', account, '*'), includeRules)
+    def result = loadResults(Keys.getSecurityGroupKey('*', '*', account, '*'), includeRules)
+    log.info("get all security group by account=${account}, return ${result ? result.size() : 0} groups")
+    result
   }
 
   @Override
   Set<HuaweiCloudSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    loadResults(Keys.getSecurityGroupKey(name, '*', account, '*'), includeRules)
+    def result = loadResults(Keys.getSecurityGroupKey(name, '*', account, '*'), includeRules)
+    log.info("get all security group by account=${account} and group name=${name}, return ${result ? result.size() : 0} groups")
+    result
   }
 
   @Override
   Set<HuaweiCloudSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    loadResults(Keys.getSecurityGroupKey('*', '*', account, region), includeRules)
+    def result = loadResults(Keys.getSecurityGroupKey('*', '*', account, region), includeRules)
+    log.info("get all security group by account=${account} and region=${region}, return ${result ? result.size() : 0} groups")
+    result
   }
 
   @Override
   HuaweiCloudSecurityGroup get(String account, String region, String name, String vpcId) {
-    Set<HuaweiCloudSecurityGroup> groups = loadResults(Keys.getSecurityGroupKey(name, '*', account, region), true)
-    if (!groups) {
+    Set<HuaweiCloudSecurityGroup> result = loadResults(Keys.getSecurityGroupKey(name, '*', account, region), true)
+    log.info("get all security group by account=${account}, region=${region} and group name=${name}, return ${result ? result.size() : 0} groups")
+
+    if (!result) {
       return null
     }
-    return groups.find { it.vpcId == vpcId }
+    return result.find { it.vpcId == vpcId }
   }
 
   private Set<HuaweiCloudSecurityGroup> loadResults(String pattern, boolean includeRules) {
@@ -90,19 +102,15 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
       cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern),
       RelationshipCacheFilter.none())
 
-    log.info("build security group from cache, has cache data?={}", data ? "yes" : "no")
     if (!data) {
       return [] as Set
     }
 
-    Set<HuaweiCloudSecurityGroup> result = data.collect { this.fromCacheData(it, null) }.findAll()
     if (!includeRules) {
-      return result
+      return data.collect { this.fromCacheData(it, null) }.findAll()
     }
 
-    Map<String, HuaweiCloudSecurityGroup> m = [:].withDefault {null}
-    result.each { m[it.id] = it }
-    return data.collect { this.buildWithRules(it, m) }.findAll()
+    return data.collect(this.&buildWithRules).findAll()
   }
 
   private HuaweiCloudSecurityGroup fromCacheData(CacheData cacheData, List<Rule> inboundRules) {
@@ -110,8 +118,6 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
     if (!parts) {
       return null
     }
-
-    Map data = cacheData.attributes.security_group
 
     return new HuaweiCloudSecurityGroup(
       type: this.cloudProvider,
@@ -121,24 +127,27 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
       region: parts.region,
       accountName: parts.account,
       application: parts.application,
-      vpcId: data.vpc_id,
+      vpcId: cacheData.attributes.securityGroup.vpc_id,
       inboundRules: inboundRules ? inboundRules as Set : [] as Set
     )
   }
 
-  private HuaweiCloudSecurityGroup buildWithRules(CacheData cacheData, Map<String, HuaweiCloudSecurityGroup> allGroups) {
-    Map data = cacheData.attributes.security_group
-    if (!allGroups.containsKey(data.id)) {
-      return null
-    }
+  private HuaweiCloudSecurityGroup buildWithRules(CacheData cacheData) {
+    Map allGroupKeys = cacheData.attributes.allGroupKeys
 
     List<Rule> inboundRules = []
+    Map data = cacheData.attributes.securityGroup
     data.security_group_rules.each { Map rule ->
       if (rule.direction == "ingress") {
 
         if (rule.remote_ip_prefix) {
-          String cidr = rule.remote_ip_prefix
-          String ip = cidr.contains("/") ? "" : cidr
+          def parts = rule.remote_ip_prefix.split('/')
+          String ip = parts[0]
+          String cidr = ""
+          if (parts.size() > 1 && (parts[1] as Integer) != 32) {
+            cidr = rule.remote_ip_prefix
+            ip = ""
+          }
 
           inboundRules << new IpRangeRule(
             portRanges: [buildPortRange(rule)] as SortedSet,
@@ -150,7 +159,7 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
           inboundRules << new SecurityGroupRule(
             portRanges: [buildPortRange(rule)] as SortedSet,
             protocol: rule.protocol,
-            securityGroup: copySecurityGroup(allGroups.get(rule.remote_group_id, null))
+            securityGroup: buildRemoteSecurityGroup(allGroupKeys.get(rule.remote_group_id, null))
           )
         }
       }
@@ -169,24 +178,31 @@ class HuaweiCloudSecurityGroupProvider implements SecurityGroupProvider<HuaweiCl
 
     // there are two cases for icmp: both min and max are null or not.
     def startPort = (rule.port_range_min != null) ? rule.port_range_min as Integer : 0
-    def endPort = (rule.port_range_max != null) ? rule.port_range_max  as Integer : 65535
+    def endPort = (rule.port_range_max != null) ? rule.port_range_max  as Integer : 255
     return new Rule.PortRange(
       startPort: startPort <= endPort ? startPort : endPort,
       endPort: startPort <= endPort ? endPort : startPort
     )
   }
 
-  private HuaweiCloudSecurityGroup copySecurityGroup(HuaweiCloudSecurityGroup from) {
-    from ? new HuaweiCloudSecurityGroup(
+  private HuaweiCloudSecurityGroup buildRemoteSecurityGroup(String key) {
+    if (!key) {
+      return null
+    }
+
+    Map<String, String> parts = Keys.parse(key)
+    if (!parts) {
+      return null
+    }
+
+    new HuaweiCloudSecurityGroup(
       type: this.cloudProvider,
       cloudProvider: this.cloudProvider,
-      id: from.id,
-      name: from.name,
-      region: from.region,
-      accountName: from.accountName,
-      application: from.application,
-      vpcId: from.vpcId,
-      inboundRules: [] as Set
-    ) : null
+      id: parts.id,
+      name: parts.name,
+      region: parts.region,
+      accountName: parts.account,
+      application: parts.application,
+    )
   }
 }
