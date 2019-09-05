@@ -16,51 +16,94 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudASInstanceHealth
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudLoadBalanceHealth
+import com.netflix.spinnaker.clouddriver.model.Health
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
 import groovy.transform.Canonical
 
 @Canonical
-class HuaweiCloudInstance implements Instance {
-
-  static final long START_TIME_DRIFT = 180000
-
-  final String providerType = HuaweiCloudProvider.ID
-  final String cloudProvider = HuaweiCloudProvider.ID
-
-  List<Map<String, Object>> health = []
-
+class HuaweiCloudInstance {
   String account
-  String name
-  String zone
   String region
+  String zone
   Long launchTime
 
-  @Override
-  HealthState getHealthState() {
-    someUpRemainingUnknown(health) ? HealthState.Up :
-      anyStarting(health) ? HealthState.Starting :
-        anyDown(health) ? HealthState.Down :
-          anyOutOfService(health) ? HealthState.OutOfService :
-            launchTime > System.currentTimeMillis() - START_TIME_DRIFT ? HealthState.Starting :
-              HealthState.Unknown
-  }
+  ASAutoScalingGroupInstance asInstance
+  Set<NeutronMemberV2> lbInstances
 
-  private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
-    List<Map<String, String>> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown.toString() }
-    knownHealthList ? knownHealthList.every { it.state == HealthState.Up.toString() } : false
-  }
+  @Canonical
+  class View implements Instance {
+    static final long START_TIME_DRIFT = 180000
 
-  private static boolean anyStarting(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Starting.toString()}
-  }
+    final String providerType = HuaweiCloudProvider.ID
+    final String cloudProvider = HuaweiCloudProvider.ID
 
-  private static boolean anyDown(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Down.toString()}
-  }
+    String account = HuaweiCloudInstance.this.account
+    String region = HuaweiCloudInstance.this.region
+    String zone = HuaweiCloudInstance.this.zone
+    Long launchTime = HuaweiCloudInstance.this.launchTime // HuaweiCloudInstance.this.launchTime.time / 1000 : 0
 
-  private static boolean anyOutOfService(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.OutOfService.toString()}
+    String name = HuaweiCloudInstance.this.asInstance.instanceName
+
+    List<? extends Health> allHealth = buildAllHealth()
+
+    @Override
+    List<Map<String, Object>> getHealth() {
+      ObjectMapper mapper = new ObjectMapper()
+
+      allHealth.collect {
+        mapper.convertValue(it, new TypeReference<Map<String, Object>>() {})
+      }
+    }
+
+    @Override
+    HealthState getHealthState() {
+      someUpRemainingUnknown(allHealth) ? HealthState.Up :
+        anyStarting(allHealth) ? HealthState.Starting :
+          anyDown(allHealth) ? HealthState.Down :
+            anyOutOfService(allHealth) ? HealthState.OutOfService :
+              launchTime > System.currentTimeMillis() - START_TIME_DRIFT ? HealthState.Starting :
+                HealthState.Unknown
+    }
+
+    private List<? extends Health> buildAllHealth() {
+      List<? extends Health> result = []
+
+      if (HuaweiCloudInstance.this.asInstance) {
+        result << new HuaweiCloudASInstanceHealth(HuaweiCloudInstance.this.asInstance)
+      }
+
+      if (HuaweiCloudInstance.this.lbInstances) {
+        HuaweiCloudInstance.this.lbInstances.each {
+          result << new HuaweiCloudLoadBalanceHealth(it)
+        }
+      }
+
+      result
+    }
+
+    private static boolean someUpRemainingUnknown(List<? extends Health> healthList) {
+      List<? extends Health> knownHealthList = healthList.findAll{ it.state != HealthState.Unknown }
+      knownHealthList ? knownHealthList.every { it.state == HealthState.Up } : false
+    }
+
+    private static boolean anyStarting(List<? extends Health> healthList) {
+      healthList.any { it.state == HealthState.Starting}
+    }
+
+    private static boolean anyDown(List<? extends Health> healthList) {
+      healthList.any { it.state == HealthState.Down}
+    }
+
+    private static boolean anyOutOfService(List<? extends Health> healthList) {
+      healthList.any { it.state == HealthState.OutOfService}
+    }
   }
 }
