@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.huawei.openstack4j.model.network.ext.MemberV2
+import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
-import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudASInstanceHealth
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudLoadBalanceHealth
@@ -35,8 +37,13 @@ class HuaweiCloudInstance {
   String zone
   Long launchTime
 
-  ASAutoScalingGroupInstance asInstance
-  Set<NeutronMemberV2> lbInstances
+  ScalingGroupInstance asInstance
+  List<? extends MemberV2> lbInstances
+
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
 
   @Canonical
   class View implements Instance {
@@ -48,10 +55,12 @@ class HuaweiCloudInstance {
     String account = HuaweiCloudInstance.this.account
     String region = HuaweiCloudInstance.this.region
     String zone = HuaweiCloudInstance.this.zone
-    Long launchTime = HuaweiCloudInstance.this.launchTime // HuaweiCloudInstance.this.launchTime.time / 1000 : 0
+    Long launchTime = HuaweiCloudInstance.this.launchTime
 
     String name = HuaweiCloudInstance.this.asInstance.instanceName
+    String id = HuaweiCloudInstance.this.asInstance.instanceId
 
+    @JsonIgnore
     List<? extends Health> allHealth = buildAllHealth()
 
     @Override
@@ -82,7 +91,7 @@ class HuaweiCloudInstance {
 
       if (HuaweiCloudInstance.this.lbInstances) {
         HuaweiCloudInstance.this.lbInstances.each {
-          result << new HuaweiCloudLoadBalanceHealth(it)
+          result << new HuaweiCloudLoadBalanceHealth(it as NeutronMemberV2)
         }
       }
 

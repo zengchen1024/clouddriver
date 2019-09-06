@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -27,94 +33,105 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup.InstanceCounts
 import groovy.transform.Canonical
 
 @Canonical
-class HuaweiCloudServerGroup implements ServerGroup {
-
-  String name
+class HuaweiCloudServerGroup {
   String account
   String region
-  Boolean disabled
+  ScalingGroup scalingGroup
+  Set<HuaweiCloudInstance> instances
+  List<String> loadBalancers
+  List<String> securityGroups
+  Image image
 
-  Set<String> zones
-  Map<String, Object> image
-  Map<String, Object> launchConfig
-  Map<String, Object> scalingConfig
-  Map<String, Object> buildInfo
-  Map<String, String> tags
-  Set<String> loadBalancers
-  Set<Instance> instances
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @Canonical
+  class View implements ServerGroup {
+    final String type = HuaweiCloudProvider.ID
+    final String cloudProvider = HuaweiCloudProvider.ID
 
-  final String type = HuaweiCloudProvider.ID
-  final String cloudProvider = HuaweiCloudProvider.ID
+    String account = HuaweiCloudServerGroup.this.account
+    String region = HuaweiCloudServerGroup.this.region
 
-  @Override
-  Boolean isDisabled() {
-    disabled
-  }
+    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers
+    Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups
 
-  @Override
-  Long getCreatedTime() {
-    0
-  }
+    String name = HuaweiCloudServerGroup.this.scalingGroup.name
+    Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
 
-  @Override
-  Set<String> getSecurityGroups() {
-    (launchConfig && launchConfig.containsKey('securityGroups')) ? (Set<String>) launchConfig.securityGroups : []
-  }
+    Map<String, Object> launchConfig = null // as config ?
+    Map<String, String> tags = null // it seems no tags
 
-  @Override
-  InstanceCounts getInstanceCounts() {
-    new InstanceCounts(
-      total: instances ? instances.size() : 0,
-      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
-      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
-      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
-      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
-      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
-  }
+    Set<? extends Instance> Instances = HuaweiCloudServerGroup.this.instances.collect { it.view }
 
-  @Override
-  Capacity getCapacity() {
-    scalingConfig ?
+    @Override
+    Boolean isDisabled() {
+      HuaweiCloudServerGroup.this.scalingGroup.groupStatus != ScalingGroup.ScalingGroupStatus.INSERVICE
+    }
+
+    @Override
+    Long getCreatedTime() {
+      HuaweiCloudServerGroup.this.scalingGroup.createTime?.time
+    }
+
+    @Override
+    Capacity getCapacity() {
+      def scalingGroup = HuaweiCloudServerGroup.this.scalingGroup
+
       new Capacity(
-        min: scalingConfig.minSize ? scalingConfig.minSize as Integer : 0,
-        max: scalingConfig.maxSize ? scalingConfig.maxSize as Integer : 0,
-        desired: scalingConfig.desiredSize ? scalingConfig.desiredSize as Integer : 0)
-      : null
-  }
+        min: scalingGroup.minInstanceNumber ? scalingGroup.minInstanceNumber as Integer : 0,
+        max: scalingGroup.maxInstanceNumber ? scalingGroup.maxInstanceNumber as Integer : 0,
+        desired: scalingGroup.desireInstanceNumber ? scalingGroup.desireInstanceNumber as Integer : 0
+      )
+    }
 
-  @Override
-  ImagesSummary getImagesSummary() {
-    new ImagesSummaryImpl(
-      summaries: [
-        new ImageSummaryImpl(
-          serverGroupName: name,
-          imageName: image?.name,
-          imageId: image?.id,
-          buildInfo: buildInfo,
-          image: image
-        )
-      ]
-    )
-  }
+    @Override
+    InstanceCounts getInstanceCounts() {
+      Set<HealthState> allStates = this.getInstances().each { it.getHealthState() }
 
-  @Override
-  ImageSummary getImageSummary() {
-    imagesSummary?.summaries?.getAt(0)
-  }
+      new InstanceCounts(
+        total: allStates ? allStates.size() : 0,
+        up: calInstancesNumByHealthState(allStates, HealthState.Up) ?: 0,
+        down: calInstancesNumByHealthState(allStates, HealthState.Down) ?: 0,
+        unknown: calInstancesNumByHealthState(allStates, HealthState.Unknown) ?: 0,
+        starting: calInstancesNumByHealthState(allStates, HealthState.Starting) ?: 0,
+        outOfService: calInstancesNumByHealthState(allStates, HealthState.OutOfService) ?: 0)
+    }
 
-  static class ImageSummaryImpl implements ImageSummary {
-    String serverGroupName
-    String imageId
-    String imageName
-    Map<String, Object> image
-    Map<String, Object> buildInfo
-  }
+    static Integer calInstancesNumByHealthState(Set<HealthState> allStates, HealthState healthState) {
+      allStates.findAll { it == healthState }?.size()
+    }
 
-  static class ImagesSummaryImpl implements ImagesSummary {
-    List<ImageSummary> summaries
-  }
+    @Override
+    ImagesSummary getImagesSummary() {
+      def image = HuaweiCloudServerGroup.this.image
+      ObjectMapper mapper = new ObjectMapper()
 
-  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
-    instances.findAll { Instance it -> it.getHealthState() == healthState }
+      new ImagesSummaryImpl(
+        summaries: [
+          new ImageSummaryImpl(
+            serverGroupName: this.name,
+            imageName: image.name,
+            imageId: image.id,
+            image: mapper.convertValue(it, new TypeReference<Map<String, Object>>() {})
+          )
+        ]
+      )
+    }
+
+    @Override
+    ImageSummary getImageSummary() {
+      imagesSummary?.summaries?.getAt(0)
+    }
+
+    static class ImageSummaryImpl implements ImageSummary {
+      String serverGroupName
+      String imageId
+      String imageName
+      Map<String, Object> image
+      Map<String, Object> buildInfo
+    }
+
+    static class ImagesSummaryImpl implements ImagesSummary {
+      List<ImageSummary> summaries
+    }
   }
 }
