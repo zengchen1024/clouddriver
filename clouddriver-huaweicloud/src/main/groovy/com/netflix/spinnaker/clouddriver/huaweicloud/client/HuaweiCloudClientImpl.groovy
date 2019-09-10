@@ -20,11 +20,16 @@ import com.huawei.openstack4j.api.OSClient
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
 import com.huawei.openstack4j.model.compute.RebootType
+import com.huawei.openstack4j.model.network.ext.LbPoolV2
+import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
+import com.huawei.openstack4j.model.network.ext.MemberV2
+import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -74,6 +79,16 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  List<? extends ScalingConfig> getScalingConfigs(String region) {
+    getRegionClient(region).autoScaling().configs().list()
+  }
+
+  @Override
+  ScalingConfig getScalingConfig(String region, String configId) {
+    getRegionClient(region).autoScaling().configs().get(configId)
+  }
+
+  @Override
   List<Image> getImages(String region) {
     getRegionClient(region).imsV2().images().list(
       [
@@ -85,8 +100,23 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  Image getImage(String region, String imageId) {
+    getRegionClient(region).imsV2().images().get(imageId)
+  }
+
+  @Override
   List<CloudServer> getInstances(String region) {
     getRegionClient(region).ecs().servers().list()
+  }
+
+  @Override
+  CloudServer getInstance(String region, String instanceId) {
+    getRegionClient(region).ecs().servers().get(instanceId)
+  }
+
+  @Override
+  List<InterfaceAttachment> getInstanceNics(String region, String instanceId) {
+    getRegionClient(region).ecs().servers().getInterfaces(instanceId)
   }
 
   @Override
@@ -131,4 +161,43 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   SecurityGroupRule createSecurityGroupRule(String region, SecurityGroupRule rule) {
     getRegionClient(region).vpc().securityGroups().createSecurityGroupRule(rule)
   }
+
+  @Override
+  List<? extends LoadBalancerV2> getLoadBalancers(String region) {
+    def result = []
+    String marker = ""
+    Map<String, String> page = ["limit": "20", "marker": ""]
+    while(true) {
+      page["marker"] = marker
+      List<? extends LoadBalancerV2> v = getRegionClient(region).networking().lbaasV2().loadbalancer().list(page)
+      if (!v) {
+        break
+      }
+      result << v
+      marker = v[-1].id
+    }
+
+    result.flatten()
+  }
+
+  @Override
+  LoadBalancerV2 getLoadBalancer(String region, String lbid) {
+    getRegionClient(region).networking().lbaasV2().loadbalancer().get(lbid)
+  }
+
+  @Override
+  List<? extends LbPoolV2> getLoadBalancerPools(String region) {
+    getRegionClient(region).networking().lbaasV2().lbpool().list()
+  }
+
+  @Override
+  LbPoolV2 getLoadBalancerPool(String region, String poolId) {
+    getRegionClient(region).networking().lbaasV2().lbpool().get(poolId)
+  }
+
+  @Override
+  List<? extends MemberV2> getLoadBalancerPoolMembers(String region, String poolId) {
+    getRegionClient(region).networking().lbaasV2().lbPool().listMembers(poolId)
+  }
+
 }

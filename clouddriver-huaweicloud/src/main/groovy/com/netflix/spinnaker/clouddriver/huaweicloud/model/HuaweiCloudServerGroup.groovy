@@ -38,7 +38,7 @@ class HuaweiCloudServerGroup {
   String region
   ScalingGroup scalingGroup
   Set<HuaweiCloudInstance> instances
-  List<String> loadBalancers
+  Map<String, String> loadBalancers // id -> name
   List<String> securityGroups
   Image image
 
@@ -51,7 +51,7 @@ class HuaweiCloudServerGroup {
     String account = HuaweiCloudServerGroup.this.account
     String region = HuaweiCloudServerGroup.this.region
 
-    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers
+    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.value()
     Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups
 
     String name = HuaweiCloudServerGroup.this.scalingGroup.name

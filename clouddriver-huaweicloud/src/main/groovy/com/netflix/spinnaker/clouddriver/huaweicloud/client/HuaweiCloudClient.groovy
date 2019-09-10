@@ -18,11 +18,16 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client
 
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
+import com.huawei.openstack4j.model.network.ext.LbPoolV2
+import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
+import com.huawei.openstack4j.model.network.ext.MemberV2
+import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -82,6 +87,21 @@ interface HuaweiCloudClient {
   List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId)
 
   /**
+   * List auto scaling group config in a region
+   * @param region
+   * @return
+   */
+  List<? extends ScalingConfig> getScalingConfigs(String region)
+
+  /**
+   * Get an auto scaling group config in a region
+   * @param region
+   * @param configId
+   * @return
+   */
+  ScalingConfig getScalingConfig(String region, String configId)
+
+  /**
    * List images in a region
    * @param region
    * @return
@@ -89,11 +109,35 @@ interface HuaweiCloudClient {
   List<Image> getImages(String region)
 
   /**
+   * Get an image in a region
+   * @param region
+   * @param imageId
+   * @return
+   */
+  Image getImage(String region, String imageId)
+
+  /**
    * List elastic compute instances in a region
    * @param region
    * @return
    */
   List<CloudServer> getInstances(String region)
+
+  /**
+   * Get an elastic compute instance in a region
+   * @param region
+   * @param instanceId
+   * @return
+   */
+  CloudServer getInstance(String region, String instanceId)
+
+  /**
+   * List nics of an elastic compute instance in a region
+   * @param region
+   * @param instanceId
+   * @return
+   */
+  List<InterfaceAttachment> getInstanceNics(String region, String instanceId)
 
   /**
    * List instance types in a region
@@ -150,4 +194,42 @@ interface HuaweiCloudClient {
    * @return
    */
   SecurityGroupRule createSecurityGroupRule(String region, SecurityGroupRule rule)
+
+  /**
+   * List load balancers in a region
+   * @param region
+   * @return
+   */
+  List<? extends LoadBalancerV2> getLoadBalancers(String region)
+
+  /**
+   * Get a load balancer in a region
+   * @param region
+   * @param lbid
+   * @return
+   */
+  LoadBalancerV2 getLoadBalancer(String region, String lbid)
+
+  /**
+   * List load balancer pools in a region
+   * @param region
+   * @return
+   */
+  List<? extends LbPoolV2> getLoadBalancerPools(String region)
+
+  /**
+   * Get a load balancer pool in a region
+   * @param region
+   * @param poolId
+   * @return
+   */
+  LbPoolV2 getLoadBalancerPool(String region, String poolId)
+
+  /**
+   * List members of a load balancer pool in a region
+   * @param region
+   * @param poolId
+   * @return
+   */
+  List<? extends MemberV2> getLoadBalancerPoolMembers(String region, String poolId)
 }
