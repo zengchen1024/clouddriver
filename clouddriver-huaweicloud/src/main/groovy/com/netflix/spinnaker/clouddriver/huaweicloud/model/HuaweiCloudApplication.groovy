@@ -23,7 +23,7 @@ import groovy.transform.EqualsAndHashCode
 @Canonical
 @EqualsAndHashCode
 class HuaweiCloudApplication implements Application {
-  final String name
-  final Map<String, String> attributes
-  final Map<String, Set<String>> clusterNames
+  String name
+  Map<String, String> attributes
+  Map<String, Set<String>> clusterNames
 }

@@ -100,13 +100,13 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
 
     Map<String, SecurityGroup> securityGroupsMap = cloudClient.getSecurityGroups(region)?.collectEntries { [(it.id): it] }
 
-    Map<String, ScalingConfig> scalingConfigsMap = cloudClient.getScalingConfigs(region)?.collectEntries { [(it.id): it] }
+    Map<String, ScalingConfig> scalingConfigsMap = cloudClient.getScalingConfigs(region)?.collectEntries { [(it.configId): it] }
 
     Map<String, Image> imagesMap = cloudClient.getImages(region)?.collectEntries { [(it.id): it] }
 
     Map<String, Map<String, ? extends MemberV2>> poolMembers = [:]
 
-    scalingGroups.each {
+    scalingGroups.collect {
       ASAutoScalingGroup scalingGroup = it as ASAutoScalingGroup
 
       // build load balancers
@@ -260,7 +260,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
           attributes.serverGroup = objectMapper.convertValue(item, ATTRIBUTES)
           relationships[APPLICATIONS.ns].add(appKey)
           relationships[CLUSTERS.ns].add(clusterKey)
-          relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys.values())
+          relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
           relationships[INSTANCES.ns].addAll(instanceKeys)
         }
       }

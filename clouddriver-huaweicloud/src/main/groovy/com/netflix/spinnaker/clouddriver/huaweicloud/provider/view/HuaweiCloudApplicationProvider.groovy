@@ -79,7 +79,7 @@ class HuaweiCloudApplicationProvider implements ApplicationProvider {
     }
 
     String appName = Keys.parse(cacheData.id).application
-    log.info("build application=${appName} from cache data")
+    log.info("build application=${appName} from cache data, cluster names=${clusterNames}")
 
     return new HuaweiCloudApplication(
       name: appName,

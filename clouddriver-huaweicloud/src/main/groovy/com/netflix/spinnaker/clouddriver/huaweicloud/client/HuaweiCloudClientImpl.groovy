@@ -187,12 +187,12 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
 
   @Override
   List<? extends LbPoolV2> getLoadBalancerPools(String region) {
-    getRegionClient(region).networking().lbaasV2().lbpool().list()
+    getRegionClient(region).networking().lbaasV2().lbPool().list()
   }
 
   @Override
   LbPoolV2 getLoadBalancerPool(String region, String poolId) {
-    getRegionClient(region).networking().lbaasV2().lbpool().get(poolId)
+    getRegionClient(region).networking().lbaasV2().lbPool().get(poolId)
   }
 
   @Override

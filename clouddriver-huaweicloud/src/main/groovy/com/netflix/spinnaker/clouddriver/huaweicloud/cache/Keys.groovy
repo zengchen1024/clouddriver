@@ -213,4 +213,9 @@ class Keys {
   static String getLoadBalancerKey(String loadBalancerName, String loadBalancerId, String account, String region) {
     "${ID}:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerId}:${loadBalancerName}"
   }
+
+  static String getClusterKey(String account, String application, String clusterName) {
+    "${ID}:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}"
+  }
+
 }
