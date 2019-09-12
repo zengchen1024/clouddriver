@@ -42,7 +42,9 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.FixedIp
 import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronLbPoolV2
+import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.huawei.openstack4j.openstack.scaling.domain.LBPool
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import groovy.util.logging.Slf4j
@@ -175,9 +177,10 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         }
       }
 
-      List<? extends MemberV2> lbInstances = scalingGroup.lbPools.collect { LBPool lbPool ->
+      List<NeutronMemberV2> lbInstances = scalingGroup.lbPools.collect { LBPool lbPool ->
         if (!poolMembers.containsKey(lbPool.poolId)) {
            List<? extends MemberV2> members = cloudClient.getLoadBalancerPoolMembers(region, lbPool.poolId)
+
            poolMembers[lbPool.poolId] = members.collectEntries { MemberV2 member ->
             [(member.subnetId + "_" + member.address): member]
            }
@@ -189,7 +192,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         if (!key) {
           // throw ex
         }
-        poolMembers.get(lbPool.poolId).get(key)
+        poolMembers.get(lbPool.poolId).get(key) as NeutronMemberV2
       }
 
       new HuaweiCloudInstance(
@@ -197,14 +200,14 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         region: region,
         zone: server.availabilityZone,
         launchTime: server.launchedAt?.time,
-        asInstance: instance,
+        asInstance: instance as ASAutoScalingGroupInstance,
         lbInstances: lbInstances
       )
     }
   }
 
   protected CacheResult buildCacheResult(ProviderCache providerCache, CacheResultBuilder cacheResultBuilder, List<HuaweiCloudServerGroup> groups) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     groups?.each { HuaweiCloudServerGroup item ->
       String serverGroupName = item.scalingGroup.groupName
@@ -257,7 +260,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         OnDemandCacheUtils.moveOnDemandDataToNamespace(objectMapper, cacheResultBuilder, serverGroupKey)
       } else {
         cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
-          attributes.serverGroup = objectMapper.convertValue(item, ATTRIBUTES)
+          attributes = objectMapper.convertValue(item, ATTRIBUTES)
           relationships[APPLICATIONS.ns].add(appKey)
           relationships[CLUSTERS.ns].add(clusterKey)
           relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

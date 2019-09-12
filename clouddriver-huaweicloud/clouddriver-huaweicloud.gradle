@@ -16,7 +16,10 @@ dependencies {
   implementation "com.netflix.spinnaker.moniker:moniker"
   implementation "org.glassfish.jersey.inject:jersey-hk2:2.28"
   //implementation 'com.huawei:openstack4j:1.0.15'
-  implementation files("/go_workspace/workspace/src/github.com/huaweicloud/huaweicloud-sdk-java/distribution/target/openstack4j-1.0.15-withdeps.jar")
+  implementation files("/go_workspace/workspace/src/github.com/huaweicloud/huaweicloud-sdk-java/distribution/target/openstack4j-2.0.0.jar")
+  implementation "org.glassfish.jersey.core:jersey-client:2.22.1"
+  implementation "org.glassfish.jersey.media:jersey-media-json-jackson:2.11"
+  implementation files("/go_workspace/workspace/src/github.com/huaweicloud/huaweicloud-sdk-java/connectors/jersey2/target/openstack4j-jersey2-2.0.0.jar")
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"

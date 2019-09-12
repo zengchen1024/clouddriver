@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -36,11 +37,16 @@ import groovy.transform.Canonical
 class HuaweiCloudServerGroup {
   String account
   String region
-  ScalingGroup scalingGroup
+  ASAutoScalingGroup scalingGroup
   Set<HuaweiCloudInstance> instances
   Map<String, String> loadBalancers // id -> name
   List<String> securityGroups
   Image image
+
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   @Canonical
@@ -51,10 +57,10 @@ class HuaweiCloudServerGroup {
     String account = HuaweiCloudServerGroup.this.account
     String region = HuaweiCloudServerGroup.this.region
 
-    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.value()
+    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.values()
     Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups
 
-    String name = HuaweiCloudServerGroup.this.scalingGroup.name
+    String name = HuaweiCloudServerGroup.this.scalingGroup.groupName
     Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
 
     Map<String, Object> launchConfig = null // as config ?
@@ -85,7 +91,7 @@ class HuaweiCloudServerGroup {
 
     @Override
     InstanceCounts getInstanceCounts() {
-      Set<HealthState> allStates = this.getInstances().each { it.getHealthState() }
+      Set<HealthState> allStates = this.getInstances().collect { it.getHealthState() }
 
       new InstanceCounts(
         total: allStates ? allStates.size() : 0,

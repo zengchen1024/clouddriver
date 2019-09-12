@@ -22,7 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.HealthState
 
 class HuaweiCloudLoadBalanceHealth extends HuaweiCloudHealth {
 
-  final HealthType type = HealthType.AutoScaling
+  final HealthType type = HealthType.LoadBalancer
 
   final HealthState state
 

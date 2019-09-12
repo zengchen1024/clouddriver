@@ -19,9 +19,8 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.huawei.openstack4j.model.network.ext.MemberV2
-import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudASInstanceHealth
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudLoadBalanceHealth
@@ -37,15 +36,14 @@ class HuaweiCloudInstance {
   String zone
   Long launchTime
 
-  ScalingGroupInstance asInstance
-  List<? extends MemberV2> lbInstances
+  ASAutoScalingGroupInstance asInstance
+  List<NeutronMemberV2> lbInstances
 
   @JsonIgnore
   View getView() {
     new View()
   }
 
-  @Canonical
   class View implements Instance {
     static final long START_TIME_DRIFT = 180000
 
@@ -61,7 +59,13 @@ class HuaweiCloudInstance {
     String id = HuaweiCloudInstance.this.asInstance.instanceId
 
     @JsonIgnore
-    List<? extends Health> allHealth = buildAllHealth()
+    List<? extends Health> allHealth
+
+    View() {
+      this.allHealth = buildAllHealth(
+        HuaweiCloudInstance.this.asInstance,
+        HuaweiCloudInstance.this.lbInstances)
+    }
 
     @Override
     List<Map<String, Object>> getHealth() {
@@ -82,16 +86,17 @@ class HuaweiCloudInstance {
                 HealthState.Unknown
     }
 
-    private List<? extends Health> buildAllHealth() {
+    private static List<? extends Health> buildAllHealth(ASAutoScalingGroupInstance asInstance,
+                                                         List<NeutronMemberV2> lbInstances) {
       List<? extends Health> result = []
 
-      if (HuaweiCloudInstance.this.asInstance) {
-        result << new HuaweiCloudASInstanceHealth(HuaweiCloudInstance.this.asInstance)
+      if (asInstance) {
+        result << new HuaweiCloudASInstanceHealth(asInstance)
       }
 
-      if (HuaweiCloudInstance.this.lbInstances) {
-        HuaweiCloudInstance.this.lbInstances.each {
-          result << new HuaweiCloudLoadBalanceHealth(it as NeutronMemberV2)
+      if (lbInstances) {
+        lbInstances.each {
+          result << new HuaweiCloudLoadBalanceHealth(it)
         }
       }
 
