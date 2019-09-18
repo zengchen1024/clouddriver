@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Target Inc.
+ * Copyright 2019 Huawei Technologies Co.,Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,6 +166,11 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
     List<? extends ScalingGroupInstance> instances = cloudClient.getScalingGroupInstances(region, scalingGroup.groupId)
 
     instances.collect { ScalingGroupInstance instance ->
+      // Maybe the instance is being removed from auto scaling, its id will be null
+      if (!instance.instanceId) {
+        return null
+      }
+
       CloudServer server = cloudClient.getInstance(region, instance.instanceId)
 
       List<InterfaceAttachment> interfaces = cloudClient.getInstanceNics(region, instance.instanceId)
@@ -203,7 +208,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         asInstance: instance as ASAutoScalingGroupInstance,
         lbInstances: lbInstances
       )
-    }
+    }?.findAll()
   }
 
   protected CacheResult buildCacheResult(ProviderCache providerCache, CacheResultBuilder cacheResultBuilder, List<HuaweiCloudServerGroup> groups) {

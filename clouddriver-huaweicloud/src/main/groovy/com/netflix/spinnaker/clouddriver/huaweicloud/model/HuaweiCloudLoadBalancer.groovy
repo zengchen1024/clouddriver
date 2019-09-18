@@ -16,30 +16,49 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronLoadBalancerV2
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
+import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
 
 @Canonical
-class HuaweiCloudLoadBalancer implements LoadBalancer {
+class HuaweiCloudLoadBalancer {
 
-  final String type = HuaweiCloudProvider.ID
-  final String cloudProvider = HuaweiCloudProvider.ID
-  String name
   String account
   String region
-  Set<LoadBalancerServerGroup> serverGroups
 
-  void setMoniker(Moniker _ignored) {}
+  NeutronLoadBalancerV2 loadbalancer
 
-  @Override
-  boolean equals(Object o) {
-    if (!(o instanceof HuaweiCloudLoadBalancer)) {
-      return false
-    }
-    HuaweiCloudLoadBalancer other = (HuaweiCloudLoadBalancer)o
-    other.getAccount() == this.getAccount() && other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
+  @JsonIgnore
+  View getView() {
+    new View()
+  }
+
+  @Canonical
+  class View implements LoadBalancer {
+    final String type = HuaweiCloudProvider.ID
+    final String cloudProvider = HuaweiCloudProvider.ID
+
+    String id = HuaweiCloudLoadBalancer.this.loadbalancer.id
+    String name = HuaweiCloudLoadBalancer.this.loadbalancer.name
+    String account = HuaweiCloudLoadBalancer.this.account
+
+    Set<LoadBalancerServerGroup> serverGroups = [] as Set
+
+    void setMoniker(Moniker _ignored) {}
+  }
+
+  @JsonIgnore
+  Details getDetails() {
+    new Details()
+  }
+
+  @Canonical
+  class Details extends View implements LoadBalancerProvider.Details {
+    String region = HuaweiCloudLoadBalancer.this.region
   }
 }

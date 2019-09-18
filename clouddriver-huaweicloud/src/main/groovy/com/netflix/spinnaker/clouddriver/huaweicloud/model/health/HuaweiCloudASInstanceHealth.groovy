@@ -35,7 +35,7 @@ class HuaweiCloudASInstanceHealth extends HuaweiCloudHealth {
       case HealthStatus.NORMAL:
         return HealthState.Up
 
-      case HealthStatus.INITAILIZING:
+      case HealthStatus.INITIALIZING:
         return HealthState.Starting
 
       case HealthStatus.ERROR:

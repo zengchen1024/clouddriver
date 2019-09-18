@@ -22,6 +22,7 @@ import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
 import com.huawei.openstack4j.model.compute.RebootType
 import com.huawei.openstack4j.model.network.ext.LbPoolV2
 import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
+import com.huawei.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import com.huawei.openstack4j.model.network.ext.MemberV2
 import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
@@ -186,6 +187,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  LoadBalancerV2StatusTree getLoadBalancerStatusTree(String region, String lbid) {
+    getRegionClient(region).networking().lbaasV2().loadbalancer().statusTree(lbid)
+  }
+
+  @Override
   List<? extends LbPoolV2> getLoadBalancerPools(String region) {
     getRegionClient(region).networking().lbaasV2().lbPool().list()
   }
@@ -199,5 +205,4 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   List<? extends MemberV2> getLoadBalancerPoolMembers(String region, String poolId) {
     getRegionClient(region).networking().lbaasV2().lbPool().listMembers(poolId)
   }
-
 }

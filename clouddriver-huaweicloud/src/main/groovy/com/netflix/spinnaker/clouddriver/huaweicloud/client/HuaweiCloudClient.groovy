@@ -20,6 +20,7 @@ import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone
 import com.huawei.openstack4j.model.network.ext.LbPoolV2
 import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
+import com.huawei.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import com.huawei.openstack4j.model.network.ext.MemberV2
 import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
@@ -209,6 +210,14 @@ interface HuaweiCloudClient {
    * @return
    */
   LoadBalancerV2 getLoadBalancer(String region, String lbid)
+
+  /**
+   * Get a load balancer status tree in a region
+   * @param region
+   * @param lbid
+   * @return
+   */
+  LoadBalancerV2StatusTree getLoadBalancerStatusTree(String region, String lbid)
 
   /**
    * List load balancer pools in a region
