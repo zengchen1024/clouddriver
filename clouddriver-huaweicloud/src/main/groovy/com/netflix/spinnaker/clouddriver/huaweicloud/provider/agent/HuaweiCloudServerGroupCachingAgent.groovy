@@ -33,7 +33,6 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAc
 import com.huawei.openstack4j.model.network.ext.LbPoolV2
 import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
 import com.huawei.openstack4j.model.network.ext.MemberV2
-import com.huawei.openstack4j.model.scaling.InstanceConfig
 import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
@@ -43,6 +42,7 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronLbPoolV2
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingInstanceConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.huawei.openstack4j.openstack.scaling.domain.LBPool
@@ -129,24 +129,23 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         }
       }
 
-      // build security groups
-      List<String> asSecurityGroups = []
-      scalingGroup.securityGroups.each {
-        if (!securityGroupsMap.containsKey(it.id)) {
-          securityGroupsMap[it.id] = cloudClient.getSecurityGroup(region, it.id)
-        }
-
-        asSecurityGroups << securityGroupsMap.get(it.id).name
-      }
-
       // build image
       if (!scalingConfigsMap.containsKey(scalingGroup.configId)) {
         scalingConfigsMap[scalingGroup.configId] = getScalingConfig(region, scalingGroup.configId)
       }
 
-      InstanceConfig config = scalingConfigsMap.get(scalingGroup.configId).instanceConfig
+      def config = scalingConfigsMap.get(scalingGroup.configId).instanceConfig as ASAutoScalingInstanceConfig
       if (!imagesMap.containsKey(config.imageRef)) {
         imagesMap[config.imageRef] = cloudClient.getImage(region, config.imageRef)
+      }
+
+      // build security groups
+      Map<String, String> asSecurityGroups = config.securityGroups.collectEntries {
+        if (!securityGroupsMap.containsKey(it.id)) {
+          securityGroupsMap[it.id] = cloudClient.getSecurityGroup(region, it.id)
+        }
+
+        [(it.id): securityGroupsMap.get(it.id).name]
       }
 
       new HuaweiCloudServerGroup(
@@ -156,19 +155,20 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         instances: constructInstances(scalingGroup, poolMembers),
         loadBalancers: asLoadBlancers,
         securityGroups: asSecurityGroups,
-        image: imagesMap.get(config.imageRef)
+        image: imagesMap.get(config.imageRef),
+        config: config
       )
     }
   }
 
-  private List<HuaweiCloudInstance> constructInstances(ASAutoScalingGroup scalingGroup, Map<String, Map<String, ? extends MemberV2>> poolMembers) {
+  private Map<String, HuaweiCloudInstance> constructInstances(ASAutoScalingGroup scalingGroup, Map<String, Map<String, ? extends MemberV2>> poolMembers) {
 
     List<? extends ScalingGroupInstance> instances = cloudClient.getScalingGroupInstances(region, scalingGroup.groupId)
 
-    instances.collect { ScalingGroupInstance instance ->
+    instances.collectEntries { ScalingGroupInstance instance ->
       // Maybe the instance is being removed from auto scaling, its id will be null
       if (!instance.instanceId) {
-        return null
+        return [(instance.instanceId): null]
       }
 
       CloudServer server = cloudClient.getInstance(region, instance.instanceId)
@@ -195,20 +195,20 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
           poolMembers.get(lbPool.poolId)?.containsKey(it)
         }
         if (!key) {
-          // throw ex
+          log.error("Can't find the corresponding member in pool=${lbPool.poolId} for instance=${instance.instanceId}")
         }
         poolMembers.get(lbPool.poolId).get(key) as NeutronMemberV2
       }
 
-      new HuaweiCloudInstance(
+      [(instance.instanceId): new HuaweiCloudInstance(
         account: accountName,
         region: region,
         zone: server.availabilityZone,
         launchTime: server.launchedAt?.time,
         asInstance: instance as ASAutoScalingGroupInstance,
         lbInstances: lbInstances
-      )
-    }?.findAll()
+      )]
+    }?.findAll{ it.value }
   }
 
   protected CacheResult buildCacheResult(ProviderCache providerCache, CacheResultBuilder cacheResultBuilder, List<HuaweiCloudServerGroup> groups) {
@@ -251,7 +251,9 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         key
       }
 
-      List<String> instanceKeys = item.instances?.collect { HuaweiCloudInstance instance ->
+      List<String> instanceKeys = item.instances?.collect {
+        HuaweiCloudInstance instance = it.value
+
         String key = Keys.getInstanceKey(instance.asInstance.instanceId, accountName, region)
 
         cacheResultBuilder.namespace(INSTANCES.ns).keep(key).with {
@@ -317,7 +319,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
       buildCacheResult(
         providerCache,
         new CacheResultBuilder(startTime: Long.MAX_VALUE),
-        group ? [group] : [])
+        group ? [group] : []
+      )
     }
 
     String key = Keys.getServerGroupKey(name, accountName, region)

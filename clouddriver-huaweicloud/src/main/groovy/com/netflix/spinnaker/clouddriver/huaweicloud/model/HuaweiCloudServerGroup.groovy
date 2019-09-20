@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingInstanceConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -38,9 +39,10 @@ class HuaweiCloudServerGroup {
   String account
   String region
   ASAutoScalingGroup scalingGroup
-  Set<HuaweiCloudInstance> instances
-  Map<String, String> loadBalancers // id -> name
-  List<String> securityGroups
+  ASAutoScalingInstanceConfig config
+  Map<String, HuaweiCloudInstance> instances // id -> instance
+  Map<String, String> loadBalancers          // id -> name
+  Map<String, String> securityGroups         // id -> name
   Image image
 
   @JsonIgnore
@@ -58,15 +60,14 @@ class HuaweiCloudServerGroup {
     String region = HuaweiCloudServerGroup.this.region
 
     Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.values()
-    Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups
+    Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
 
     String name = HuaweiCloudServerGroup.this.scalingGroup.groupName
     Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
 
-    Map<String, Object> launchConfig = null // as config ?
     Map<String, String> tags = null // it seems no tags
 
-    Set<? extends Instance> Instances = HuaweiCloudServerGroup.this.instances.collect { it.view }
+    Set<? extends Instance> Instances = HuaweiCloudServerGroup.this.instances.collect { it.value.view }?.toSet()
 
     @Override
     Boolean isDisabled() {
@@ -76,6 +77,18 @@ class HuaweiCloudServerGroup {
     @Override
     Long getCreatedTime() {
       HuaweiCloudServerGroup.this.scalingGroup.createTime?.time
+    }
+
+    @Override
+    Map<String, Object> getLaunchConfig() {
+      def config = HuaweiCloudServerGroup.this.config
+
+      Map<String, Object> result = [:]
+      result["instanceType"] = config.flavorRef
+      result["securityGroups"] = config.securityGroups.collect { it.id }?.toSet()
+      result["imageId"] = config.imageRef
+
+      result
     }
 
     @Override

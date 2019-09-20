@@ -46,6 +46,7 @@ class HuaweiCloudLoadBalancer {
     String id = HuaweiCloudLoadBalancer.this.loadbalancer.id
     String name = HuaweiCloudLoadBalancer.this.loadbalancer.name
     String account = HuaweiCloudLoadBalancer.this.account
+    String region = HuaweiCloudLoadBalancer.this.region
 
     Set<LoadBalancerServerGroup> serverGroups = [] as Set
 
@@ -59,6 +60,5 @@ class HuaweiCloudLoadBalancer {
 
   @Canonical
   class Details extends View implements LoadBalancerProvider.Details {
-    String region = HuaweiCloudLoadBalancer.this.region
   }
 }
