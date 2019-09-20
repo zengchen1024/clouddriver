@@ -55,8 +55,9 @@ class HuaweiCloudInstance {
     String zone = HuaweiCloudInstance.this.zone
     Long launchTime = HuaweiCloudInstance.this.launchTime
 
-    String name = HuaweiCloudInstance.this.asInstance.instanceName
-    String id = HuaweiCloudInstance.this.asInstance.instanceId
+    // ServerGroupController use the name as the id of instance
+    // and invokes getHumanReadableName to get the instance's name
+    String name = HuaweiCloudInstance.this.asInstance.instanceId
 
     @JsonIgnore
     List<? extends Health> allHealth
@@ -65,6 +66,11 @@ class HuaweiCloudInstance {
       this.allHealth = buildAllHealth(
         HuaweiCloudInstance.this.asInstance,
         HuaweiCloudInstance.this.lbInstances)
+    }
+
+    @Override
+    String getHumanReadableName() {
+      HuaweiCloudInstance.this.asInstance.instanceName
     }
 
     @Override

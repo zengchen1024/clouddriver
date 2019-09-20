@@ -142,8 +142,8 @@ class HuaweiCloudLoadBalancerProvider implements LoadBalancerProvider<HuaweiClou
 
       loadBalancerServerGroup.instances = serverGroup.instances?.collect { instance ->
         new LoadBalancerInstance(
-          id: instance.id,
-          name: instance.name,
+          id: instance.name,
+          name: instance.humanReadableName,
           zone: instance.zone,
           health: [state: instance.healthState?.toString()]
         )
