@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model.health
 
-import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance.HealthStatus
 import com.netflix.spinnaker.clouddriver.model.HealthState
 
-class HuaweiCloudASInstanceHealth extends HuaweiCloudHealth {
+class HuaweiCloudInstanceHealth extends HuaweiCloudHealth {
 
-  final HealthType type = HealthType.AutoScaling
+  final HealthType type = HealthType.HuaweiCloud
+  final HealthClass healthClass = HealthClass.platform
 
   HealthState state
 
-  HuaweiCloudASInstanceHealth(ScalingGroupInstance instance) {
-    this.state = buildState(instance.healthStatus)
+  HuaweiCloudInstanceHealth(HealthStatus status) {
+    this.state = buildState(status)
   }
 
   private static HealthState buildState(HealthStatus status) {

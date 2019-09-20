@@ -17,29 +17,57 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.model.health
 
 import com.huawei.openstack4j.model.network.ext.LbOperatingStatus
-import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
 import com.netflix.spinnaker.clouddriver.model.HealthState
 
 class HuaweiCloudLoadBalanceHealth extends HuaweiCloudHealth {
 
   final HealthType type = HealthType.LoadBalancer
+  final HealthClass healthClass = null
 
-  final HealthState state
+  List<LBHealthSummary> loadBalancers
 
-  HuaweiCloudLoadBalanceHealth(NeutronMemberV2 instance) {
-    this.state = buildState(instance.operatingStatus)
+  @Override
+  HealthState getState() {
+    (loadBalancers ?: []).every {
+      it.state == LBHealthSummary.ServiceStatus.InService
+    } ? HealthState.Up : HealthState.Down
   }
 
-  private static HealthState buildState(LbOperatingStatus status) {
-    switch(status) {
-      case LbOperatingStatus.ONLINE:
-        return HealthState.Up
+  static class LBHealthSummary {
+    String name
+    ServiceStatus state
 
-      case LbOperatingStatus.OFFLINE:
-        return HealthState.Down
+    LBHealthSummary(String name, LbOperatingStatus status) {
+      this.name = name
+      this.state = buildState(status)
+    }
 
-      default:
-        return HealthState.Unknown
+    private static ServiceStatus buildState(LbOperatingStatus status) {
+      switch(status) {
+        case LbOperatingStatus.ONLINE:
+          return ServiceStatus.InService
+
+        case LbOperatingStatus.OFFLINE:
+          return ServiceStatus.OutOfService
+
+        default:
+          return ServiceStatus.InService
+      }
+    }
+
+    String getDescription() {
+      state == ServiceStatus.OutOfService ?
+        "Instance has failed at least the Unhealthy Threshold number of health checks consecutively." :
+        "Healthy"
+    }
+
+    ServiceStatus getHealthState() {
+      state
+    }
+
+    enum ServiceStatus {
+      InService,
+      OutOfService
     }
   }
 }

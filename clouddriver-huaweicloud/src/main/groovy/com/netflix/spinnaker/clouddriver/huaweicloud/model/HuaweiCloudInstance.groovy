@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
-import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudASInstanceHealth
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudInstanceHealth
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.health.HuaweiCloudLoadBalanceHealth
 import com.netflix.spinnaker.clouddriver.model.Health
 import com.netflix.spinnaker.clouddriver.model.HealthState
@@ -91,13 +91,16 @@ class HuaweiCloudInstance {
       List<? extends Health> result = []
 
       if (asInstance) {
-        result << new HuaweiCloudASInstanceHealth(asInstance)
+        result << new HuaweiCloudInstanceHealth(asInstance.healthStatus)
       }
 
       if (lbInstances) {
-        lbInstances.each {
-          result << new HuaweiCloudLoadBalanceHealth(it)
+
+        def loadBalancers = lbInstances.collect {
+          new HuaweiCloudLoadBalanceHealth.LBHealthSummary(it.name, it.operatingStatus)
         }
+
+        result << new HuaweiCloudLoadBalanceHealth(loadBalancers: loadBalancers)
       }
 
       result

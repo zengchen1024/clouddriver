@@ -20,8 +20,12 @@ import com.netflix.spinnaker.clouddriver.model.Health
 
 abstract class HuaweiCloudHealth implements Health, Serializable {
 
+  enum HealthClass {
+    platform
+  }
+
   enum HealthType {
-    AutoScaling,
+    HuaweiCloud,
     LoadBalancer
   }
 
