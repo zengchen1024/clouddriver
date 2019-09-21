@@ -201,7 +201,9 @@ class HuaweiCloudLoadBalancerProvider implements LoadBalancerProvider<HuaweiClou
 
     data.each { CacheData cacheData ->
       def details = buildDetailsFromCacheData(cacheData, serverGroups)
-      result.get(details.name).byAccount(details.account).byRegion(details.region).loadBalancers << details
+      result.get(details.name)
+        .getByAccount(details.account)
+        .getByRegion(details.region).loadBalancers << details
     }
 
     result.values() as List
@@ -225,7 +227,7 @@ class HuaweiCloudLoadBalancerProvider implements LoadBalancerProvider<HuaweiClou
 
   static class HuaweiCloudLoadBalancerAccount implements LoadBalancerProvider.ByAccount {
     Map<String, HuaweiCloudLoadBalancerByRegion> loadBalancerByRegion = [:].withDefault {
-      region -> new HuaweiCloudLoadBalancerAccount(name: region)
+      region -> new HuaweiCloudLoadBalancerByRegion(name: region)
     }
     String name
 
