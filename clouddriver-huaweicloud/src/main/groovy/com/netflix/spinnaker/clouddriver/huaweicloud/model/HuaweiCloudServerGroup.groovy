@@ -63,6 +63,8 @@ class HuaweiCloudServerGroup {
     Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
 
     String name = HuaweiCloudServerGroup.this.scalingGroup.groupName
+    String vpcId = HuaweiCloudServerGroup.this.scalingGroup.vpcId
+    Set<String> subnets = HuaweiCloudServerGroup.this.scalingGroup.networks.collect { it.id }?.toSet()
     Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
 
     Map<String, String> tags = null // it seems no tags

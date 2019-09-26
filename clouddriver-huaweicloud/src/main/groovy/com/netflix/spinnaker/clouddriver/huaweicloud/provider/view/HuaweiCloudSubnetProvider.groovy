@@ -63,6 +63,7 @@ class HuaweiCloudSubnetProvider implements SubnetProvider<HuaweiCloudSubnet> {
     return new HuaweiCloudSubnet(
       type: this.cloudProvider,
       id: parts.id,
+      name: subnet.name,
       region: parts.region,
       account: parts.account,
       purpose: 'n/a',

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Subnet
 class HuaweiCloudSubnet implements Subnet {
   String type
   String id
+  String name
   String purpose
   String account
   String region
