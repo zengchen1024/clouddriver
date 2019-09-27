@@ -27,8 +27,9 @@ import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
-import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
+import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -94,6 +95,15 @@ interface HuaweiCloudClient {
    * @return
    */
   List<? extends ScalingGroup> getScalingGroups(String region)
+
+  /**
+   * Update auto scaling group in a region
+   * @param region
+   * @param groupId
+   * @param params
+   * @return
+   */
+  String updateScalingGroup(String region, String groupId, ASAutoScalingGroupUpdate params)
 
   /**
    * List instances of auto scaling group in a region
