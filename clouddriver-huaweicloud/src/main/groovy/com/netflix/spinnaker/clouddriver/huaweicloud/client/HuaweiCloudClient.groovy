@@ -73,6 +73,22 @@ interface HuaweiCloudClient {
   List<SecurityGroup> getSecurityGroups(String region)
 
   /**
+   * Enable auto scaling group in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+  ActionResponse enableScalingGroup(String region, String groupId)
+
+  /**
+   * Disable auto scaling group in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+  ActionResponse disableScalingGroup(String region, String groupId)
+
+  /**
    * List auto scaling groups in a region
    * @param region
    * @return

@@ -62,6 +62,7 @@ class HuaweiCloudServerGroup {
     Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.values()
     Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
 
+    String groupId = HuaweiCloudServerGroup.this.scalingGroup.groupId
     String name = HuaweiCloudServerGroup.this.scalingGroup.groupName
     String vpcId = HuaweiCloudServerGroup.this.scalingGroup.vpcId
     Set<String> subnets = HuaweiCloudServerGroup.this.scalingGroup.networks.collect { it.id }?.toSet()
