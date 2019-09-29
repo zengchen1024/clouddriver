@@ -203,6 +203,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  ActionResponse deleteLoadBalancer(String region, String lbid) {
+    getRegionClient(region).networking().lbaasV2().loadbalancer().delete(lbid)
+  }
+
+  @Override
   LoadBalancerV2 getLoadBalancer(String region, String lbid) {
     getRegionClient(region).networking().lbaasV2().loadbalancer().get(lbid)
   }

@@ -246,6 +246,14 @@ interface HuaweiCloudClient {
   LoadBalancerV2 getLoadBalancer(String region, String lbid)
 
   /**
+   * Delete a load balancer in a region
+   * @param region
+   * @param lbid
+   * @return
+   */
+  ActionResponse deleteLoadBalancer(String region, String lbid)
+
+  /**
    * Get a load balancer status tree in a region
    * @param region
    * @param lbid
