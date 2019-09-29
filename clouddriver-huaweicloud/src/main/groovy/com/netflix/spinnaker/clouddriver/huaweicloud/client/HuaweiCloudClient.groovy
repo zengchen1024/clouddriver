@@ -90,6 +90,14 @@ interface HuaweiCloudClient {
   ActionResponse disableScalingGroup(String region, String groupId)
 
   /**
+   * Delete auto scaling group in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+  ActionResponse deleteScalingGroup(String region, String groupId)
+
+  /**
    * List auto scaling groups in a region
    * @param region
    * @return

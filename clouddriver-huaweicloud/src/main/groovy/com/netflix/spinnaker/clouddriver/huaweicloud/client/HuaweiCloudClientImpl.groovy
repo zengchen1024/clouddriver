@@ -81,6 +81,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  ActionResponse deleteScalingGroup(String region, String groupId) {
+    getRegionClient(region).autoScaling().groups().delete(groupId)
+  }
+
+  @Override
   List<? extends ScalingGroup> getScalingGroups(String region) {
     getRegionClient(region).autoScaling().groups().list()
   }
