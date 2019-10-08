@@ -47,7 +47,14 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     TaskAware.task.updateStatus BASE_PHASE, "Resizing server group=${description.serverGroupName} in region=${description.region}..."
 
-    // TODO check if need update
+    def cloudClient = description.credentials.cloudClient
+
+    def group = cloudClient.getScalingGroup(description.region, description.serverGroupId)
+    if (group.minInstanceNumber == description.capacity.min
+      && group.maxInstanceNumber == description.capacity.max
+      && group.desireInstanceNumber == description.capacity.desired) {
+      return
+    }
 
     ASAutoScalingGroupUpdate params = ASAutoScalingGroupUpdate.builder()
       .desireInstanceNumber(description.capacity.desired)
@@ -55,12 +62,28 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
       .maxInstanceNumber(description.capacity.max)
       .build()
 
-    description.credentials.cloudClient.updateScalingGroup(
+    cloudClient.updateScalingGroup(
       description.region, description.serverGroupId, params
     )
 
-    TaskAware.task.updateStatus BASE_PHASE, "Finished resizing server group=${description.serverGroupName}."
-    // TODO wait for the number of instance to match the desire size
+    TaskAware.task.updateStatus BASE_PHASE, "Waiting for resizing server group=${description.serverGroupName} to be done."
+
+    Boolean result = AsyncWait.asyncWait(-1, {
+      try {
+        group = cloudClient.getScalingGroup(description.region, description.serverGroupId)
+        if (!group) {
+          return AsyncWait.AsyncWaitStatus.UNKNOWN
+        }
+
+        return group.currentInstanceNumber == group.desireInstanceNumber ?
+          AsyncWait.AsyncWaitStatus.SUCCESS : AsyncWait.AsyncWaitStatus.PENDING
+
+      } catch (Exception) {
+        return AsyncWait.AsyncWaitStatus.UNKNOWN
+      }
+    })
+
+    TaskAware.task.updateStatus BASE_PHASE, "Finished resizing server group=${description.serverGroupName}, ${result ? "add succeed" : "but failed"}."
     return
   }
 }
