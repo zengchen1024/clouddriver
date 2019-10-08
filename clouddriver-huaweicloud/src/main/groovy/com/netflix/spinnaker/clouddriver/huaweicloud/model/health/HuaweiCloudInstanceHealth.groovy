@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.model.health
 
+import com.huawei.openstack4j.model.scaling.ScalingGroup.ScalingGroupStatus
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance.HealthStatus
 import com.netflix.spinnaker.clouddriver.model.HealthState
 
@@ -26,11 +27,17 @@ class HuaweiCloudInstanceHealth extends HuaweiCloudHealth {
 
   HealthState state
 
-  HuaweiCloudInstanceHealth(HealthStatus status) {
-    this.state = buildState(status)
+  HuaweiCloudInstanceHealth(HealthStatus status, ScalingGroupStatus sgStatus) {
+    this.state = buildState(status, sgStatus)
   }
 
-  private static HealthState buildState(HealthStatus status) {
+  private static HealthState buildState(HealthStatus status, ScalingGroupStatus sgStatus) {
+    // TODO maybe there is some other way to turn down the instance
+    // at present, if scaling group is paused, then all the instances are down as well.
+    if (sgStatus == ScalingGroupStatus.PAUSED) {
+      return HealthState.Down
+    }
+
     switch(status) {
       case HealthStatus.NORMAL:
         return HealthState.Up

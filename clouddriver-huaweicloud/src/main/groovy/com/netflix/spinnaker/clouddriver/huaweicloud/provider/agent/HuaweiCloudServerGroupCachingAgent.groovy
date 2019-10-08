@@ -205,6 +205,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         region: region,
         zone: server.availabilityZone,
         launchTime: server.launchedAt?.time,
+        asStatus: scalingGroup.groupStatus,
         asInstance: instance as ASAutoScalingGroupInstance,
         lbInstances: lbInstances
       )]

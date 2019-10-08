@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.huawei.openstack4j.model.scaling.ScalingGroup.ScalingGroupStatus
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
@@ -36,6 +37,7 @@ class HuaweiCloudInstance {
   String zone
   Long launchTime
 
+  ScalingGroupStatus asStatus
   ASAutoScalingGroupInstance asInstance
   List<NeutronMemberV2> lbInstances
 
@@ -65,7 +67,8 @@ class HuaweiCloudInstance {
     View() {
       this.allHealth = buildAllHealth(
         HuaweiCloudInstance.this.asInstance,
-        HuaweiCloudInstance.this.lbInstances)
+        HuaweiCloudInstance.this.lbInstances,
+        HuaweiCloudInstance.this.asStatus)
     }
 
     @Override
@@ -93,11 +96,12 @@ class HuaweiCloudInstance {
     }
 
     private static List<? extends Health> buildAllHealth(ASAutoScalingGroupInstance asInstance,
-                                                         List<NeutronMemberV2> lbInstances) {
+                                                         List<NeutronMemberV2> lbInstances,
+                                                         ScalingGroupStatus asStatus) {
       List<? extends Health> result = []
 
       if (asInstance) {
-        result << new HuaweiCloudInstanceHealth(asInstance.healthStatus)
+        result << new HuaweiCloudInstanceHealth(asInstance.healthStatus, asStatus)
       }
 
       if (lbInstances) {
