@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudLoadBalancer
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudLoadBalancerPool
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import groovy.util.logging.Slf4j
 import java.util.concurrent.CompletableFuture
@@ -102,7 +103,10 @@ class HuaweiCloudLoadBalancerCachingAgent extends AbstractHuaweiCloudCachingAgen
       String loadBalancerKey = Keys.getLoadBalancerKey(loadBalancer.name, loadBalancer.id, accountName, region)
 
       Set<String> instanceIds = [] as Set
+      List<HuaweiCloudLoadBalancerPool> pools = []
       statusTreeMap?.get(loadBalancer.id)?.loadBalancerV2Status?.pools?.each { LbPoolV2Status poolStatus ->
+        pools << new HuaweiCloudLoadBalancerPool(id: poolStatus.id, name: poolStatus.name)
+
         poolStatus.memberStatuses?.each { MemberV2Status memberStatus ->
           instanceIds.add(memberStatus.id)
         }
@@ -122,7 +126,8 @@ class HuaweiCloudLoadBalancerCachingAgent extends AbstractHuaweiCloudCachingAgen
         HuaweiCloudLoadBalancer lb = new HuaweiCloudLoadBalancer(
           account: accountName,
           region: region,
-          loadbalancer: loadBalancer as NeutronLoadBalancerV2
+          loadbalancer: loadBalancer as NeutronLoadBalancerV2,
+          pools: pools,
         )
 
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {

@@ -32,6 +32,7 @@ class HuaweiCloudLoadBalancer {
   String region
 
   NeutronLoadBalancerV2 loadbalancer
+  List<HuaweiCloudLoadBalancerPool> pools
 
   @JsonIgnore
   View getView() {
@@ -47,6 +48,7 @@ class HuaweiCloudLoadBalancer {
     String name = HuaweiCloudLoadBalancer.this.loadbalancer.name
     String account = HuaweiCloudLoadBalancer.this.account
     String region = HuaweiCloudLoadBalancer.this.region
+    List<HuaweiCloudLoadBalancerPool> pools = HuaweiCloudLoadBalancer.this.pools
 
     Set<LoadBalancerServerGroup> serverGroups = [] as Set
 
