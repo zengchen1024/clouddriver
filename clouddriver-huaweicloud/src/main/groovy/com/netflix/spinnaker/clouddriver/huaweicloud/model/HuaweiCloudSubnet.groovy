@@ -26,4 +26,5 @@ class HuaweiCloudSubnet implements Subnet {
   String account
   String region
   String cidr
+  String vpcId
 }

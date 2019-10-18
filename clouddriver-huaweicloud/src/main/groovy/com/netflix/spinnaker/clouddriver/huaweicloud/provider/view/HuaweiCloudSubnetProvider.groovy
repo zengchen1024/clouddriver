@@ -67,7 +67,8 @@ class HuaweiCloudSubnetProvider implements SubnetProvider<HuaweiCloudSubnet> {
       region: parts.region,
       account: parts.account,
       purpose: 'n/a',
-      cidr: subnet.cidr
+      cidr: subnet.cidr,
+      vpcId: subnet.vpc_id
     )
   }
 }
