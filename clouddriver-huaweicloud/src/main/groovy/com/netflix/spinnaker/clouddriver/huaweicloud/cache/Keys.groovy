@@ -32,6 +32,7 @@ class Keys {
     IMAGES,
     SECURITY_GROUPS,
     SERVER_GROUPS,
+    SERVER_GROUP_CONFIGS,
     INSTANCE_TYPES,
     INSTANCES,
     LOAD_BALANCERS,
@@ -138,6 +139,14 @@ class Keys {
             name: parts[4]]
         }
         break
+      case Namespace.SERVER_GROUP_CONFIGS.ns:
+        if (parts.length == 5) {
+          result << [
+            account: parts[2],
+            region: parts[3],
+            id: parts[4]]
+        }
+        break
       case Namespace.INSTANCE_TYPES.ns:
         if (parts.length == 5) {
           result << [
@@ -200,6 +209,10 @@ class Keys {
 
   static String getServerGroupKey(String serverGroupName, String account, String region) {
     "${ID}:${Namespace.SERVER_GROUPS}:${account}:${region}:${serverGroupName}"
+  }
+
+  static String getServerGroupConfigKey(String configId, String account, String region) {
+    "${ID}:${Namespace.SERVER_GROUP_CONFIGS}:${account}:${region}:${configId}"
   }
 
   static String getInstanceTypeKey(String instanceType, String account, String region) {

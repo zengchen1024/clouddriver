@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudL
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudNetworkCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudServerGroupCachingAgent
+import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudServerGroupConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.agent.HuaweiCloudSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.huaweicloud.provider.HuaweiCloudInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
@@ -85,6 +86,7 @@ class HuaweiCloudInfrastructureProviderConfig {
           newlyAddedAgents << new HuaweiCloudSecurityGroupCachingAgent(credentials, objectMapper, region, registry)
           newlyAddedAgents << new HuaweiCloudServerGroupCachingAgent(credentials, objectMapper, region, registry)
           newlyAddedAgents << new HuaweiCloudLoadBalancerCachingAgent(credentials, objectMapper, region, registry)
+          newlyAddedAgents << new HuaweiCloudServerGroupConfigCachingAgent(credentials, objectMapper, region)
         }
       }
     }
