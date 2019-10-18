@@ -26,12 +26,16 @@ import com.huawei.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import com.huawei.openstack4j.model.network.ext.MemberV2
 import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.model.scaling.ScalingGroupCreate
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceType
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingTagActionType
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -86,6 +90,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  String createScalingGroup(String region, ScalingGroupCreate params) {
+    getRegionClient(region).autoScaling().groups().create(params)
+  }
+
+  @Override
   ScalingGroup getScalingGroup(String region, String groupId) {
     getRegionClient(region).autoScaling().groups().get(groupId)
   }
@@ -98,6 +107,17 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   String updateScalingGroup(String region, String groupId, ASAutoScalingGroupUpdate params) {
     getRegionClient(region).autoScaling().groups().update(groupId, params)
+  }
+
+  @Override
+  ActionResponse createScalingGroupTags(String region, String groupId, List<ASAutoScalingResourceTag> tags) {
+    getRegionClient(region).autoScaling().tags().updateOrDelete(
+      ASAutoScalingResourceType.scaling_group_tag, groupId,
+      ASAutoScalingResourceTag.ASAutoScalingResourceTags.builder()
+        .tags(tags)
+        .action(ASAutoScalingTagActionType.create)
+        .build()
+    )
   }
 
   @Override

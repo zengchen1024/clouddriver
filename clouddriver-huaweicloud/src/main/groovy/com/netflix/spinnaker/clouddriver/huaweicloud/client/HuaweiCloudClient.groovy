@@ -24,12 +24,14 @@ import com.huawei.openstack4j.model.network.ext.LoadBalancerV2StatusTree
 import com.huawei.openstack4j.model.network.ext.MemberV2
 import com.huawei.openstack4j.model.scaling.ScalingConfig
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.model.scaling.ScalingGroupCreate
 import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
 import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -98,6 +100,14 @@ interface HuaweiCloudClient {
   ActionResponse deleteScalingGroup(String region, String groupId)
 
   /**
+   * Create auto scaling group in a region
+   * @param region
+   * @param params
+   * @return
+   */
+  String createScalingGroup(String region, ScalingGroupCreate params)
+
+  /**
    * Get auto scaling group in a region
    * @param region
    * @param groupId
@@ -120,6 +130,15 @@ interface HuaweiCloudClient {
    * @return
    */
   String updateScalingGroup(String region, String groupId, ASAutoScalingGroupUpdate params)
+
+  /**
+   * Create auto scaling group tags in a region
+   * @param region
+   * @param groupId
+   * @param tags
+   * @return
+   */
+  ActionResponse createScalingGroupTags(String region, String groupId, List<ASAutoScalingResourceTag> tags)
 
   /**
    * List instances of auto scaling group in a region
