@@ -141,6 +141,14 @@ interface HuaweiCloudClient {
   ActionResponse createScalingGroupTags(String region, String groupId, List<ASAutoScalingResourceTag> tags)
 
   /**
+   * Get auto scaling group tags in a region
+   * @param region
+   * @param groupId
+   * @return
+   */
+   List<ASAutoScalingResourceTag> getScalingGroupTags(String region, String groupId)
+
+  /**
    * List instances of auto scaling group in a region
    * @param region
    * @param groupId

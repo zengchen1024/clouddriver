@@ -121,6 +121,15 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   }
 
   @Override
+  List<ASAutoScalingResourceTag> getScalingGroupTags(String region, String groupId) {
+    ASAutoScalingResourceTag.ASAutoScalingResourceTags result = null
+    result = getRegionClient(region).autoScaling().tags().get(
+      ASAutoScalingResourceType.scaling_group_tag, groupId)
+
+    result ? result.tags : null
+  }
+
+  @Override
   List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId) {
     getRegionClient(region).autoScaling().groupInstances().list(groupId)
   }

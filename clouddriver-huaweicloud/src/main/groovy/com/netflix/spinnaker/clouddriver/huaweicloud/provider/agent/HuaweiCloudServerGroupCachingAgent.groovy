@@ -45,6 +45,7 @@ import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingInstanceConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
 import com.huawei.openstack4j.openstack.scaling.domain.LBPool
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import groovy.util.logging.Slf4j
@@ -148,6 +149,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         [(it.id): securityGroupsMap.get(it.id).name]
       }
 
+      List<ASAutoScalingResourceTag> tags = cloudClient.getScalingGroupTags(region, scalingGroup.groupId)
+
       new HuaweiCloudServerGroup(
         account: accountName,
         region: region,
@@ -156,7 +159,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         loadBalancers: asLoadBlancers,
         securityGroups: asSecurityGroups,
         image: imagesMap.get(config.imageRef),
-        config: config
+        config: config,
+        tags: tags ? tags.collectEntries {[(it.key): it.value]} : null,
       )
     }
   }

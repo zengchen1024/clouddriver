@@ -44,6 +44,7 @@ class HuaweiCloudServerGroup {
   Map<String, String> loadBalancers          // id -> name
   Map<String, String> securityGroups         // id -> name
   Image image
+  Map<String, String> tags
 
   @JsonIgnore
   View getView() {
@@ -59,7 +60,7 @@ class HuaweiCloudServerGroup {
     String account = HuaweiCloudServerGroup.this.account
     String region = HuaweiCloudServerGroup.this.region
 
-    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.values()
+    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.keySet() // google use the name as the key of resource, but it is not true for hwc
     Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
 
     String groupId = HuaweiCloudServerGroup.this.scalingGroup.groupId
@@ -68,7 +69,7 @@ class HuaweiCloudServerGroup {
     Set<String> subnets = HuaweiCloudServerGroup.this.scalingGroup.networks.collect { it.id }?.toSet()
     Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
 
-    Map<String, String> tags = null // it seems no tags
+    Map<String, String> tags = HuaweiCloudServerGroup.this.tags
 
     Set<? extends Instance> Instances = HuaweiCloudServerGroup.this.instances.collect { it.value.view }?.toSet()
 
