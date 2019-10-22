@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingInstanceConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider
@@ -39,9 +40,9 @@ class HuaweiCloudServerGroup {
   String account
   String region
   ASAutoScalingGroup scalingGroup
-  ASAutoScalingInstanceConfig config
+  ASAutoScalingConfig scalingConfig
   Map<String, HuaweiCloudInstance> instances // id -> instance
-  Map<String, String> loadBalancers          // id -> name
+  List<HuaweiCloudServerGroupLoadBalancer> loadBalancers
   Map<String, String> securityGroups         // id -> name
   Image image
   Map<String, String> tags
@@ -59,15 +60,26 @@ class HuaweiCloudServerGroup {
 
     String account = HuaweiCloudServerGroup.this.account
     String region = HuaweiCloudServerGroup.this.region
-
-    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.keySet() // google use the name as the key of resource, but it is not true for hwc
-    Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
-
     String groupId = HuaweiCloudServerGroup.this.scalingGroup.groupId
     String name = HuaweiCloudServerGroup.this.scalingGroup.groupName
+
+    Set<String> loadBalancers = HuaweiCloudServerGroup.this.loadBalancers?.collect { it.loadBalancerId } // google use the name as the key of resource, but it is not true for hwc
+    Set<String> securityGroups = HuaweiCloudServerGroup.this.securityGroups?.values()
+
+    Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
+    String multiAZPriorityPolicy = HuaweiCloudServerGroup.this.scalingGroup.multiAZPriorityPolicy
+
     String vpcId = HuaweiCloudServerGroup.this.scalingGroup.vpcId
     Set<String> subnets = HuaweiCloudServerGroup.this.scalingGroup.networks.collect { it.id }?.toSet()
-    Set<String> zones = HuaweiCloudServerGroup.this.scalingGroup.availabilityZones
+
+    List<HuaweiCloudServerGroupLoadBalancer> loadBalancerDetails = HuaweiCloudServerGroup.this.loadBalancers
+
+    Boolean deleteEIP = HuaweiCloudServerGroup.this.scalingGroup.deletePublicip
+    String instanceRemovePolicy = HuaweiCloudServerGroup.this.scalingGroup.instanceTerminatePolicy
+
+    String healthCheckWay = HuaweiCloudServerGroup.this.scalingGroup.healthPeriodicAuditMethod
+    Integer healthCheckInterval = HuaweiCloudServerGroup.this.scalingGroup.healthPeriodicAuditTime
+    Integer healthCheckGracePeriod = HuaweiCloudServerGroup.this.scalingGroup.healthPeriodicAuditGracePeriod
 
     Map<String, String> tags = HuaweiCloudServerGroup.this.tags
 
@@ -85,12 +97,14 @@ class HuaweiCloudServerGroup {
 
     @Override
     Map<String, Object> getLaunchConfig() {
-      def config = HuaweiCloudServerGroup.this.config
+      def scalingConfig = HuaweiCloudServerGroup.this.scalingConfig
+      ASAutoScalingInstanceConfig instanceConfig = scalingConfig.instanceConfig
 
       Map<String, Object> result = [:]
-      result["instanceType"] = config.flavorRef
-      result["securityGroups"] = config.securityGroups.collect { it.id }?.toSet()
-      result["imageId"] = config.imageRef
+      result["instanceType"] = instanceConfig.flavorRef
+      result["securityGroups"] = instanceConfig.securityGroups.collect { it.id }?.toSet()
+      result["imageId"] = instanceConfig.imageRef
+      result["scalingConfigId"] = scalingConfig.configId
 
       result
     }

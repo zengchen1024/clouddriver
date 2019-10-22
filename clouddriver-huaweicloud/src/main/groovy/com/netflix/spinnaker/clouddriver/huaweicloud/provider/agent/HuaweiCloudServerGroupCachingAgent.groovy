@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudInstance
 import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudServerGroup
+import com.netflix.spinnaker.clouddriver.huaweicloud.model.HuaweiCloudServerGroupLoadBalancer
 import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAccountCredentials
 import com.huawei.openstack4j.model.network.ext.LbPoolV2
 import com.huawei.openstack4j.model.network.ext.LoadBalancerV2
@@ -42,6 +43,7 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronLbPoolV2
 import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingInstanceConfig
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupInstance
@@ -113,7 +115,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
       ASAutoScalingGroup scalingGroup = it as ASAutoScalingGroup
 
       // build load balancers
-      Map<String, String> asLoadBlancers = [:]
+      List<HuaweiCloudServerGroupLoadBalancer> asLoadBlancers = []
       scalingGroup.lbPools.each { LBPool lbPool ->
         if (!loadBalancerPoolsMap.containsKey(lbPool.poolId)) {
           loadBalancerPoolsMap[lbPool.poolId] = cloudClient.getLoadBalancerPool(lbPool.poolId)
@@ -126,7 +128,12 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
           }
 
           LoadBalancerV2 lb = loadBalancersMap.get(it.id)
-          asLoadBlancers[lb.id] = lb.name
+          asLoadBlancers << HuaweiCloudServerGroupLoadBalancer(
+            loadBalancerId: lb.id,
+            poolId: lbPool.poolId,
+            backendPort: lbPool.protocolPort,
+            weight: lbPool.weight
+          )
         }
       }
 
@@ -135,13 +142,14 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         scalingConfigsMap[scalingGroup.configId] = getScalingConfig(region, scalingGroup.configId)
       }
 
-      def config = scalingConfigsMap.get(scalingGroup.configId).instanceConfig as ASAutoScalingInstanceConfig
-      if (!imagesMap.containsKey(config.imageRef)) {
-        imagesMap[config.imageRef] = cloudClient.getImage(region, config.imageRef)
+      def scalingConfig = scalingConfigsMap.get(scalingGroup.configId) as ASAutoScalingConfig
+      ASAutoScalingInstanceConfig instanceConfig = scalingConfig.instanceConfig
+      if (!imagesMap.containsKey(instanceConfig.imageRef)) {
+        imagesMap[instanceConfig.imageRef] = cloudClient.getImage(region, instanceConfig.imageRef)
       }
 
       // build security groups
-      Map<String, String> asSecurityGroups = config.securityGroups.collectEntries {
+      Map<String, String> asSecurityGroups = instanceConfig.securityGroups.collectEntries {
         if (!securityGroupsMap.containsKey(it.id)) {
           securityGroupsMap[it.id] = cloudClient.getSecurityGroup(region, it.id)
         }
@@ -158,8 +166,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         instances: constructInstances(scalingGroup, poolMembers),
         loadBalancers: asLoadBlancers,
         securityGroups: asSecurityGroups,
-        image: imagesMap.get(config.imageRef),
-        config: config,
+        image: imagesMap.get(instanceConfig.imageRef),
+        scalingConfig: scalingConfig,
         tags: tags ? tags.collectEntries {[(it.key): it.value]} : null,
       )
     }
