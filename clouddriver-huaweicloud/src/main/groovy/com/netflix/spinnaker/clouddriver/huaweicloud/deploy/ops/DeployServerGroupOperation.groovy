@@ -40,6 +40,11 @@ class DeployServerGroupOperation implements AtomicOperation<DeploymentResult> {
     this.description = description
   }
 
+  DeployServerGroupOperation(DeployServerGroupDescription description, basePhase) {
+    this.description = description
+    this.BASE_PHASE = basePhase
+  }
+
   /*
    curl -X POST -H "Content-Type: application/json" -d '[{
     "createServerGroup": {
@@ -165,7 +170,7 @@ class DeployServerGroupOperation implements AtomicOperation<DeploymentResult> {
       .healthPeriodicAuditMethod(HealthPeriodicAuditMethod.valueOf(input.healthCheckWay))
       .healthPeriodicAuditTime(input.healthCheckInterval)
       .healthPeriodicAuditGracePeriod(input.healthCheckGracePeriod)
-      .multiAZPriorityPolicy(MultiAZPriorityPolicy.value(input.multiAZPriorityPolicy))
+      .multiAZPriorityPolicy(MultiAZPriorityPolicy.valueOf(input.multiAZPriorityPolicy))
       .instanceTerminatePolicy(InstanceTerminatePolicy.valueOf(input.instanceRemovePolicy))
       .deletePublicip(input.deleteEIP)
       .build()
