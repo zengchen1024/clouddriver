@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
+import com.huawei.openstack4j.model.common.ActionResponse
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.EnableDisableServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -43,9 +44,12 @@ class DisableServerGroupOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     TaskAware.task.updateStatus BASE_PHASE, "Disabling server group=${description.serverGroupName} in region=${description.region}..."
 
-    description.credentials.cloudClient.disableScalingGroup(
+    ActionResponse result = description.credentials.cloudClient.disableScalingGroup(
       description.region, description.serverGroupId,
     )
+    if (!result.isSuccess()) {
+      throw new OperationException(result, BASE_PHASE)
+    }
 
     TaskAware.task.updateStatus BASE_PHASE, "Finished disabling server group=${description.serverGroupName}."
     return
