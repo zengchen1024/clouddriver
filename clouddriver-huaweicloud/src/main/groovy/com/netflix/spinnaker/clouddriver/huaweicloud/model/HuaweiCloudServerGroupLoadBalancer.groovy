@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.model
 
 class HuaweiCloudServerGroupLoadBalancer {
+  String loadBalancerName
   String loadBalancerId
   String poolId
   Integer backendPort

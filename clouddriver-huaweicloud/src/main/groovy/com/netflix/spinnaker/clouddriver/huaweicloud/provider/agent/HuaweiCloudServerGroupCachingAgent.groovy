@@ -128,7 +128,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
           }
 
           LoadBalancerV2 lb = loadBalancersMap.get(it.id)
-          asLoadBlancers << HuaweiCloudServerGroupLoadBalancer(
+          asLoadBlancers << new HuaweiCloudServerGroupLoadBalancer(
+            loadBalancerName: lb.name,
             loadBalancerId: lb.id,
             poolId: lbPool.poolId,
             backendPort: lbPool.protocolPort,
@@ -254,8 +255,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
 
-      List<String> loadBalancerKeys = item.loadBalancers.collect { id, name ->
-        def key = Keys.getLoadBalancerKey(name, id, accountName, region)
+      List<String> loadBalancerKeys = item.loadBalancers.collect { HuaweiCloudServerGroupLoadBalancer it ->
+        def key = Keys.getLoadBalancerKey(it.loadBalancerName, it.loadBalancerId, accountName, region)
 
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(key).with {
           relationships[SERVER_GROUPS.ns].add(serverGroupKey)
