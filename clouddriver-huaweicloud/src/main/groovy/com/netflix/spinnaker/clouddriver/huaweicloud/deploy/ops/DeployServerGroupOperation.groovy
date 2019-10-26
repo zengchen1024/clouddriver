@@ -157,7 +157,7 @@ class DeployServerGroupOperation implements AtomicOperation<DeploymentResult> {
       .desireInstanceNumber(input.desiredSize)
       .minInstanceNumber(input.minSize)
       .maxInstanceNumber(input.maxSize)
-      .lbaasListeners(input.loadBalancers.collect {
+      .lbaasListeners(input.loadBalancers?.collect {
         new LBPool(
           poolId: it.loadBalancerPoolId,
           protocolPort: it.backendPort,

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
+import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.EnableDisableServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -44,9 +45,19 @@ class EnableServerGroupOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     TaskAware.task.updateStatus BASE_PHASE, "Enabling server group=${description.serverGroupName} in region=${description.region}..."
 
-    ActionResponse result = description.credentials.cloudClient.enableScalingGroup(
-      description.region, description.serverGroupId,
-    )
+    def cloudClient = description.credentials.cloudClient
+    String serverGroupId = description.serverGroupId
+
+    if (!serverGroupId) {
+      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
+      if (!(groups.asBoolean() && groups.size() == 1)) {
+        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
+      }
+
+      serverGroupId = groups[0].groupId
+    }
+
+    ActionResponse result = cloudClient.enableScalingGroup(description.region, serverGroupId)
     if (!result.isSuccess()) {
       throw new OperationException(result, BASE_PHASE)
     }

@@ -16,8 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
+import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
+import com.huawei.openstack4j.openstack.scaling.domain.LBPool
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.CloneServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.DeployServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
@@ -42,12 +47,68 @@ class CloneServerGroupOperation implements AtomicOperation<DeploymentResult> {
   */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    TaskAware.task.updateStatus BASE_PHASE, "Cloning server group=${description.source.serverGroupName}: ${description.source.serverGroupName} in region=${description.region}..."
+    TaskAware.task.updateStatus BASE_PHASE, "Cloning server group=${description.source.serverGroupName} in region=${description.region}..."
+
+    if (!description.serverGroupParameters) {
+      buildDeployServerGroupDescription()
+    }
 
     DeploymentResult result = (new DeployServerGroupOperation(description, BASE_PHASE)).operate(priorOutputs)
 
     TaskAware.task.updateStatus BASE_PHASE, "Finished cloning server group=${description.source.serverGroupName}."
 
     result
+  }
+
+  private Void buildDeployServerGroupDescription() {
+    def cloudClient = description.credentials.cloudClient
+    def source = description.source
+
+    List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, source.serverGroupName)
+    if (!(groups.asBoolean() && groups.size() == 1)) {
+      throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${source.serverGroupName}")
+    }
+
+    ASAutoScalingGroup sourceGroup = groups[0] as ASAutoScalingGroup
+
+    List<ASAutoScalingResourceTag> tags = cloudClient.getScalingGroupTags(description.region, sourceGroup.groupId)
+
+    CloneServerGroupDescription.Capacity capacity = description.capacity
+    if (!capacity) {
+      capacity = new CloneServerGroupDescription.Capacity(0, 0, 0)
+    }
+    Boolean useSourceCapacity = description.useSourceCapacity
+
+    description.serverGroupParameters = new DeployServerGroupDescription.ServerGroupParameters(
+      maxSize: (useSourceCapacity ? sourceGroup.maxInstanceNumber : capacity.max) as Integer,
+      minSize: (useSourceCapacity ? sourceGroup.minInstanceNumber : capacity.min) as Integer,
+      desiredSize: (useSourceCapacity ? sourceGroup.desireInstanceNumber : capacity.desired) as Integer,
+
+      serverGroupConfigId: sourceGroup.configId,
+
+      zones: sourceGroup.availabilityZones,
+      multiAZPriorityPolicy: sourceGroup.multiAZPriorityPolicy,
+
+      subnets: sourceGroup.networks.collect { it.id }?.toSet(),
+      vpcId: sourceGroup.vpcId,
+
+      healthCheckWay: sourceGroup.healthPeriodicAuditMethod,
+      healthCheckInterval: sourceGroup.healthPeriodicAuditTime,
+      healthCheckGracePeriod: sourceGroup.healthPeriodicAuditGracePeriod,
+
+      instanceRemovePolicy: sourceGroup.instanceTerminatePolicy,
+      deleteEIP: sourceGroup.deletePublicip,
+
+      loadBalancers: sourceGroup.lbPools?.collect { LBPool lbPool ->
+        new DeployServerGroupDescription.ServerGroupParameters.LoadBalancerInfo(
+          loadBalancerPoolId: lbPool.poolId,
+          backendPort: lbPool.protocolPort,
+          weight: lbPool.weight
+        )
+      },
+
+      tags: tags ? tags.collectEntries {[(it.key): it.value]} : null,
+    )
+    return
   }
 }

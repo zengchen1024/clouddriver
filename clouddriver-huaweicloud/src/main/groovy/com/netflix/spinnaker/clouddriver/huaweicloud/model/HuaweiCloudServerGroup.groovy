@@ -148,7 +148,7 @@ class HuaweiCloudServerGroup {
             serverGroupName: this.name,
             imageName: image.name,
             imageId: image.id,
-            image: mapper.convertValue(it, new TypeReference<Map<String, Object>>() {})
+            image: mapper.convertValue(image, new TypeReference<Map<String, Object>>() {})
           )
         ]
       )

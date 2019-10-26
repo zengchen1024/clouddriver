@@ -32,6 +32,7 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
+import com.huawei.openstack4j.openstack.scaling.options.ScalingGroupListOptions
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -121,6 +122,14 @@ interface HuaweiCloudClient {
    * @return
    */
   List<? extends ScalingGroup> getScalingGroups(String region)
+
+  /**
+   * List auto scaling groups in a region
+   * @param region
+   * @param name
+   * @return
+   */
+  List<? extends ScalingGroup> getScalingGroups(String region, String name)
 
   /**
    * Update auto scaling group in a region

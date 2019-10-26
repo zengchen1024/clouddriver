@@ -26,10 +26,21 @@ class CloneServerGroupDescription extends DeployServerGroupDescription {
 
   SourceServerGroup source
 
+  Boolean useSourceCapacity
+  Capacity capacity
+
   @AutoClone
   @Canonical
   static class SourceServerGroup {
     String serverGroupName
     String serverGroupId
+  }
+
+  @AutoClone
+  @Canonical
+  static class Capacity {
+    Integer min
+    Integer max
+    Integer desired
   }
 }

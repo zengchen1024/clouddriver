@@ -36,6 +36,7 @@ import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceType
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingTagActionType
+import com.huawei.openstack4j.openstack.scaling.options.ScalingGroupListOptions
 import com.huawei.openstack4j.openstack.vpc.v1.domain.PublicIp
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroupCreate
@@ -102,6 +103,14 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<? extends ScalingGroup> getScalingGroups(String region) {
     getRegionClient(region).autoScaling().groups().list()
+  }
+
+  @Override
+  List<? extends ScalingGroup> getScalingGroups(String region, String name) {
+    getRegionClient(region).autoScaling().groups()
+      .list(
+        ScalingGroupListOptions.create().groupName(name)
+      )
   }
 
   @Override

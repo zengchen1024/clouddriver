@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
+import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
@@ -43,9 +44,20 @@ class DestroyServerGroupOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     TaskAware.task.updateStatus BASE_PHASE, "Destroying server group=${description.serverGroupName} in region=${description.region}..."
 
-    ActionResponse result = description.credentials.cloudClient.deleteScalingGroup(
-      description.region, description.serverGroupId
-    )
+    def cloudClient = description.credentials.cloudClient
+    String serverGroupId = description.serverGroupId
+
+    if (!serverGroupId) {
+      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
+      if (!(groups.asBoolean() && groups.size() == 1)) {
+        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
+      }
+
+      serverGroupId = groups[0].groupId
+    }
+
+    ActionResponse result = cloudClient.deleteScalingGroup(description.region, serverGroupId)
+
     if (!result.isSuccess()) {
       // if there are instances attached to this server group, it will fail.
       throw new OperationException(result, BASE_PHASE)

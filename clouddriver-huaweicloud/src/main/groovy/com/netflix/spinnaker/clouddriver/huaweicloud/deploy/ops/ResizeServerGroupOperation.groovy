@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
+import com.huawei.openstack4j.model.scaling.ScalingGroup
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ResizeServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
@@ -48,8 +49,21 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
     TaskAware.task.updateStatus BASE_PHASE, "Resizing server group=${description.serverGroupName} in region=${description.region}..."
 
     def cloudClient = description.credentials.cloudClient
+    String serverGroupId = description.serverGroupId
+    ScalingGroup group = null
 
-    def group = cloudClient.getScalingGroup(description.region, description.serverGroupId)
+    if (serverGroupId) {
+      group = cloudClient.getScalingGroup(description.region, serverGroupId)
+    } else {
+      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
+      if (!(groups.asBoolean() && groups.size() == 1)) {
+        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
+      }
+
+      group = groups[0]
+      serverGroupId = group.groupId
+    }
+
     if (group.minInstanceNumber == description.capacity.min
       && group.maxInstanceNumber == description.capacity.max
       && group.desireInstanceNumber == description.capacity.desired) {
@@ -63,14 +77,14 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
       .build()
 
     cloudClient.updateScalingGroup(
-      description.region, description.serverGroupId, params
+      description.region, serverGroupId, params
     )
 
     TaskAware.task.updateStatus BASE_PHASE, "Waiting for resizing server group=${description.serverGroupName} to be done."
 
     Boolean result = AsyncWait.asyncWait(-1, {
       try {
-        group = cloudClient.getScalingGroup(description.region, description.serverGroupId)
+        group = cloudClient.getScalingGroup(description.region, serverGroupId)
         if (!group) {
           return AsyncWait.AsyncWaitStatus.UNKNOWN
         }
