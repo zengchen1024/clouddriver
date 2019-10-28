@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description
 
-class EnableDisableServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.deploy.description.EnableDisableDescriptionTrait
+
+class EnableDisableServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription implements EnableDisableDescriptionTrait {
   String region
   String serverGroupId
-  String serverGroupName
 }

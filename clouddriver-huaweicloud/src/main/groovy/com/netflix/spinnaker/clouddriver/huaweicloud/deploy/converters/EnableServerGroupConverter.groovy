@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.EnableDisableServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.EnableServerGroupOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -34,7 +34,7 @@ class EnableServerGroupConverter extends AbstractAtomicOperationsCredentialsSupp
   }
 
   @Override
-  EnableDisableServerGroupDescription convertDescription(Map input) {
-    AtomicOperationConverterHelper.convertDescription(input, this, EnableDisableServerGroupDescription)
+  ServerGroupDescription convertDescription(Map input) {
+    AtomicOperationConverterHelper.convertDescription(input, this, ServerGroupDescription)
   }
 }

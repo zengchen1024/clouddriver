@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.scaling.ScalingGroup
-import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.EnableDisableServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 
@@ -26,9 +26,9 @@ class EnableServerGroupOperation implements AtomicOperation<Void> {
   final String BASE_PHASE = "ENABLE_SERVER_GROUP"
   final String operation = AtomicOperations.ENABLE_SERVER_GROUP
 
-  EnableDisableServerGroupDescription description
+  ServerGroupDescription description
 
-  EnableServerGroupOperation(EnableDisableServerGroupDescription description) {
+  EnableServerGroupOperation(ServerGroupDescription description) {
     this.description = description
   }
 

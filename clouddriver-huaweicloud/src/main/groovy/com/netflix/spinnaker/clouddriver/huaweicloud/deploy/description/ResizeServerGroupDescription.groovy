@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description
 
-//import groovy.transform.Canonical
+import groovy.transform.AutoClone
+import groovy.transform.Canonical
 
-class ResizeServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription {
-
-  String region
-  String serverGroupId
-  String serverGroupName
+@AutoClone
+@Canonical
+class ResizeServerGroupDescription extends ServerGroupDescription {
 
   Capacity capacity
 
+  @AutoClone
+  @Canonical
   static class Capacity {
     int min
     int max

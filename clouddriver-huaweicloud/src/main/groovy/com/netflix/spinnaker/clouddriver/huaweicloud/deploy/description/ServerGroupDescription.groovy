@@ -16,8 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description
 
-class ServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
+
+class ServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription implements ServerGroupsNameable {
   String region
   String serverGroupId
   String serverGroupName
+
+  @Override
+  Collection<String> getServerGroupNames() {
+    [serverGroupName]
+  }
 }

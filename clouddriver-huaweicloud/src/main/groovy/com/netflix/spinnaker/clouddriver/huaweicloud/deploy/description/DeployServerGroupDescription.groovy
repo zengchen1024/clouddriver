@@ -17,18 +17,24 @@
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class DeployServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription implements DeployDescription {
+class DeployServerGroupDescription extends AbstractHuaweiCloudCredentialsDescription implements DeployDescription, ApplicationNameable {
   String application
   String stack
   String freeFormDetails
   String region
 
   ServerGroupParameters serverGroupParameters
+
+  @Override
+  Collection<String> getApplications() {
+    [application]
+  }
 
   @AutoClone
   @Canonical
