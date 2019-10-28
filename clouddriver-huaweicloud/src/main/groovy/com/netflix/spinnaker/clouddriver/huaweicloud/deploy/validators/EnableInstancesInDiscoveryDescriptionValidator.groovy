@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.InstancesDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @HuaweiCloudOperation(AtomicOperations.ENABLE_INSTANCES_IN_DISCOVERY)
+@Component
 class EnableInstancesInDiscoveryDescriptionValidator extends AbstractDescriptionValidator<InstancesDescription> {
   String context = 'enableInstancesInDiscoveryDescriptionValidator'
 

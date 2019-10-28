@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.LoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @HuaweiCloudOperation(AtomicOperations.DELETE_LOAD_BALANCER)
+@Component
 class DeleteLoadBalancerDescriptionValidator extends AbstractDescriptionValidator<LoadBalancerDescription> {
   String context = 'deleteLoadBalancerDescriptionValidator'
 

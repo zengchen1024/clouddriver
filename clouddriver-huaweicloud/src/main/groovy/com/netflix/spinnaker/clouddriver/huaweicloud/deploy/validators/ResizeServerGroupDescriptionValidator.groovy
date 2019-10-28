@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ResizeServerGroupDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @HuaweiCloudOperation(AtomicOperations.RESIZE_SERVER_GROUP)
+@Component
 class ResizeServerGroupDescriptionValidator extends AbstractDescriptionValidator<ResizeServerGroupDescription> {
   String context = 'resizeServerGroupDescriptionValidator'
 

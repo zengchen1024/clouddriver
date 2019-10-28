@@ -19,9 +19,11 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.validators
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.DeployServerGroupDescription
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
+import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @HuaweiCloudOperation(AtomicOperations.CREATE_SERVER_GROUP)
+@Component
 class DeployServerGroupDescriptionValidator extends AbstractDescriptionValidator<DeployServerGroupDescription> {
   String context = 'deployServerGroupDescriptionValidator'
 
