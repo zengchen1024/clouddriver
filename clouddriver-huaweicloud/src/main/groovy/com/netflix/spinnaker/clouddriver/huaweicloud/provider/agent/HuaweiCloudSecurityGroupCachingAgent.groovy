@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.huaweicloud.security.HuaweiCloudNamedAc
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SECURITY_GROUPS
 import static com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider.ID
 

@@ -60,6 +60,7 @@ import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.SERVER_GROUPS
 
 @Slf4j
@@ -88,7 +89,8 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    List<HuaweiCloudServerGroup> groups = constructServerGroups()
+    List<? extends ScalingGroup> scalingGroups = cloudClient.getScalingGroups(region)
+    List<HuaweiCloudServerGroup> groups = constructServerGroups(scalingGroups)
     List<String> serverGroupKeys = groups.collect { Keys.getServerGroupKey(it.scalingGroup.groupName, accountName, region) }
 
     OnDemandCacheUtils.buildLoadDataCache(providerCache, serverGroupKeys) { CacheResultBuilder cacheResultBuilder ->
@@ -96,8 +98,10 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
     }
   }
 
-  private List<HuaweiCloudServerGroup> constructServerGroups() {
-    List<? extends ScalingGroup> scalingGroups = cloudClient.getScalingGroups(region)
+  private List<HuaweiCloudServerGroup> constructServerGroups(List<? extends ScalingGroup> scalingGroups) {
+    if (!scalingGroups.asBoolean()) {
+      return []
+    }
 
     Map<String, LoadBalancerV2> loadBalancersMap = cloudClient.getLoadBalancers(region)?.collectEntries { [(it.id): it] }
 
@@ -317,7 +321,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
 
     ScalingGroup group = metricsSupport.readData {
       try {
-        List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(region).findAll { it.groupName == name }
+        List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(region, name)
         if (groups.size() == 1) {
           return groups.first()
         }
@@ -333,7 +337,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
       buildCacheResult(
         providerCache,
         new CacheResultBuilder(startTime: Long.MAX_VALUE),
-        group ? [group] : []
+        group ? constructServerGroups([group]) : []
       )
     }
 
@@ -347,7 +351,7 @@ class HuaweiCloudServerGroupCachingAgent extends AbstractHuaweiCloudCachingAgent
 
     log.info("On demand cache refresh succeeded. Data=${data}. Added ${group ? 1 : 0} server group to the cache.")
 
-    def result = OnDemandAgent.OnDemandResult()
+    def result = new OnDemandAgent.OnDemandResult()
     result.sourceAgentType = onDemandAgentType
     result.cacheResult = cacheResult
     if (!group) {

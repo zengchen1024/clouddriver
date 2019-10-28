@@ -45,6 +45,7 @@ import static com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandType
 import static com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider.ID
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.huaweicloud.cache.Keys.Namespace.ON_DEMAND
 
 @Slf4j
 class HuaweiCloudLoadBalancerCachingAgent extends AbstractHuaweiCloudCachingAgent implements OnDemandAgent {
