@@ -16,9 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
+import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.model.scaling.ScalingGroupInstance
+import com.huawei.openstack4j.model.scaling.ScalingGroup.ScalingGroupStatus
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
+import com.netflix.spinnaker.clouddriver.huaweicloud.client.HuaweiCloudClient
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ResizeServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.servergroup.ServerGroupOperationUtils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 
 class ResizeServerGroupOperation implements AtomicOperation<Void> {
@@ -28,6 +34,11 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
 
   ResizeServerGroupOperation(ResizeServerGroupDescription description) {
     this.description = description
+  }
+
+  ResizeServerGroupOperation(ResizeServerGroupDescription description, String basePhase) {
+    this.description = description
+    this.BASE_PHASE = basePhase
   }
 
   /*
@@ -46,45 +57,66 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
   */
   @Override
   Void operate(List priorOutputs) {
-    TaskAware.task.updateStatus BASE_PHASE, "Resizing server group=${description.serverGroupName} in region=${description.region}..."
+    String serverGroupName = description.serverGroupName
+    String region = description.region
+
+    TaskAware.task.updateStatus BASE_PHASE, "Resizing server group=${serverGroupName} in region=${region}..."
 
     def cloudClient = description.credentials.cloudClient
-    String serverGroupId = description.serverGroupId
-    ScalingGroup group = null
 
-    if (serverGroupId) {
-      group = cloudClient.getScalingGroup(description.region, serverGroupId)
-    } else {
-      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
-      if (!(groups.asBoolean() && groups.size() == 1)) {
-        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
-      }
+    ASAutoScalingGroup group = ServerGroupOperationUtils.findScalingGroup(
+      serverGroupName, description.serverGroupId, cloudClient, region, BASE_PHASE)
 
-      group = groups[0]
-      serverGroupId = group.groupId
-    }
+    ResizeServerGroupDescription.Capacity newCapacity = description.capacity
 
-    if (group.minInstanceNumber == description.capacity.min
-      && group.maxInstanceNumber == description.capacity.max
-      && group.desireInstanceNumber == description.capacity.desired) {
+    if (group.minInstanceNumber == newCapacity.min
+      && group.maxInstanceNumber == newCapacity.max
+      && group.desireInstanceNumber == newCapacity.desired
+      && group.currentInstanceNumber == newCapacity.desired) {
       return
     }
 
-    ASAutoScalingGroupUpdate params = ASAutoScalingGroupUpdate.builder()
-      .desireInstanceNumber(description.capacity.desired)
-      .minInstanceNumber(description.capacity.min)
-      .maxInstanceNumber(description.capacity.max)
-      .build()
+    if (group.groupStatus == ScalingGroupStatus.PAUSED) {
+      if (newCapacity.desired || newCapacity.min || newCapacity.max) {
+        throw new OperationException(
+          BASE_PHASE,
+          "can't resize server group=${serverGroupName} when it is disabled and the expect capacity is not 0")
+      }
+    }
 
-    cloudClient.updateScalingGroup(
-      description.region, serverGroupId, params
-    )
+    resizeServerGroup(group, cloudClient, region)
+  }
 
-    TaskAware.task.updateStatus BASE_PHASE, "Waiting for resizing server group=${description.serverGroupName} to be done."
+  private Void resizeServerGroup(ScalingGroup group, HuaweiCloudClient cloudClient, String region) {
+    String groupId = group.groupId
+    String serverGroupName = description.serverGroupName
+
+    TaskAware.task.updateStatus BASE_PHASE, "starting to resize server group=${serverGroupName}."
+
+    ResizeServerGroupDescription.Capacity newCapacity = description.capacity
+
+    if (!(group.minInstanceNumber == newCapacity.min
+      && group.maxInstanceNumber == newCapacity.max
+      && group.desireInstanceNumber == newCapacity.desired)) {
+
+      ASAutoScalingGroupUpdate params = ASAutoScalingGroupUpdate.builder()
+        .desireInstanceNumber(newCapacity.desired)
+        .minInstanceNumber(newCapacity.min)
+        .maxInstanceNumber(newCapacity.max)
+        .build()
+
+      cloudClient.updateScalingGroup(region, groupId, params)
+    }
+
+    if (group.groupStatus == ScalingGroupStatus.PAUSED) {
+      removeAllInstances(groupId, cloudClient, region)
+    }
+
+    TaskAware.task.updateStatus BASE_PHASE, "Waiting for resizing server group=${serverGroupName} to be done."
 
     Boolean result = AsyncWait.asyncWait(-1, {
       try {
-        group = cloudClient.getScalingGroup(description.region, serverGroupId)
+        group = cloudClient.getScalingGroup(region, groupId)
         if (!group) {
           return AsyncWait.AsyncWaitStatus.UNKNOWN
         }
@@ -97,7 +129,32 @@ class ResizeServerGroupOperation implements AtomicOperation<Void> {
       }
     })
 
-    TaskAware.task.updateStatus BASE_PHASE, "Finished resizing server group=${description.serverGroupName}, ${result ? "add succeed" : "but failed"}."
+    TaskAware.task.updateStatus BASE_PHASE, "Finished resizing server group=${serverGroupName}, ${result ? "add succeed" : "but failed"}."
+    return
+  }
+
+  private Void removeAllInstances(String groupId, HuaweiCloudClient cloudClient, String region) {
+    List<? extends ScalingGroupInstance> instances = cloudClient.getScalingGroupInstances(region, groupId)
+
+    List<String> instanceIds = instances?.collect { ScalingGroupInstance instance ->
+      instance.instanceId
+    }.findAll()
+
+    Integer end = instanceIds.size()
+    while (end > 0) {
+      Integer start = end - 10
+      if (start < 0) {
+        start = 0
+      }
+
+      ActionResponse result = cloudClient.removeInstancesFromAS(region, groupId, instanceIds.subList(start, end))
+      if (!result.isSuccess()) {
+        throw new OperationException(result, BASE_PHASE)
+      }
+
+      end = start
+    }
+
     return
   }
 }

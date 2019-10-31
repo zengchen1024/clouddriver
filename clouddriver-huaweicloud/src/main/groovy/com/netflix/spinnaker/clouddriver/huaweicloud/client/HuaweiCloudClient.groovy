@@ -166,6 +166,15 @@ interface HuaweiCloudClient {
   List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId)
 
   /**
+   * Remove instances of auto scaling group in a region
+   * @param region
+   * @param groupId
+   * @param instanceIds
+   * @return
+   */
+  ActionResponse removeInstancesFromAS(String region, String groupId, List<String> instanceIds)
+
+  /**
    * List auto scaling group config in a region
    * @param region
    * @return
@@ -327,4 +336,14 @@ interface HuaweiCloudClient {
    * @return
    */
   List<? extends MemberV2> getLoadBalancerPoolMembers(String region, String poolId)
+
+  /**
+   * Update member weight of a load balancer pool in a region
+   * @param region
+   * @param poolId
+   * @param memberId
+   * @param weight
+   * @return
+   */
+  MemberV2 updateLoadBalancerPoolMember(String region, String poolId, String memberId, Integer weight)
 }

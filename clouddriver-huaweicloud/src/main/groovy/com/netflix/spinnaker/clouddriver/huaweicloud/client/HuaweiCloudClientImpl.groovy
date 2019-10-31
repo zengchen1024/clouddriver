@@ -32,6 +32,7 @@ import com.huawei.openstack4j.openstack.ecs.v1.domain.CloudServer
 import com.huawei.openstack4j.openstack.ecs.v1.domain.Flavor
 import com.huawei.openstack4j.openstack.ecs.v1.domain.InterfaceAttachment
 import com.huawei.openstack4j.openstack.ims.v2.domain.Image
+import com.huawei.openstack4j.openstack.networking.domain.ext.NeutronMemberV2Update
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroupUpdate
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceTag
 import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingResourceType
@@ -141,6 +142,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<? extends ScalingGroupInstance> getScalingGroupInstances(String region, String groupId) {
     getRegionClient(region).autoScaling().groupInstances().list(groupId)
+  }
+
+  @Override
+  ActionResponse removeInstancesFromAS(String region, String groupId, List<String> instanceIds) {
+    getRegionClient(region).autoScaling().groupInstances().batchRemove(groupId, instanceIds, true)
   }
 
   @Override
@@ -273,5 +279,13 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
   @Override
   List<? extends MemberV2> getLoadBalancerPoolMembers(String region, String poolId) {
     getRegionClient(region).networking().lbaasV2().lbPool().listMembers(poolId)
+  }
+
+  @Override
+  MemberV2 updateLoadBalancerPoolMember(String region, String poolId, String memberId, Integer weight) {
+    getRegionClient(region).networking().lbaasV2().lbPool()
+      .updateMember(
+        poolId, memberId,
+        new NeutronMemberV2Update.MemberV2UpdateConcreteBuilder().weight(weight).build())
   }
 }

@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.servergroup.ServerGroupOperationUtils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 
@@ -43,26 +45,31 @@ class EnableServerGroupOperation implements AtomicOperation<Void> {
   */
   @Override
   Void operate(List priorOutputs) {
-    TaskAware.task.updateStatus BASE_PHASE, "Enabling server group=${description.serverGroupName} in region=${description.region}..."
+    String serverGroupName = description.serverGroupName
+    String region = description.region
+
+    TaskAware.task.updateStatus BASE_PHASE, "Enabling server group=${serverGroupName} in region=${region}..."
 
     def cloudClient = description.credentials.cloudClient
-    String serverGroupId = description.serverGroupId
 
-    if (!serverGroupId) {
-      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
-      if (!(groups.asBoolean() && groups.size() == 1)) {
-        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
+    ASAutoScalingGroup group = ServerGroupOperationUtils.findScalingGroup(
+      serverGroupName, description.serverGroupId, cloudClient, region, BASE_PHASE)
+
+    Map<String, List<String>> poolMembers = ServerGroupOperationUtils.findASLBPoolMembers(
+      group, cloudClient, region, BASE_PHASE)
+
+    poolMembers?.each {String poolId, List<String> memberIds ->
+      memberIds.each {
+        cloudClient.updateLoadBalancerPoolMember(region, poolId, it, 1)
       }
-
-      serverGroupId = groups[0].groupId
     }
 
-    ActionResponse result = cloudClient.enableScalingGroup(description.region, serverGroupId)
+    ActionResponse result = cloudClient.enableScalingGroup(region, group.groupId)
     if (!result.isSuccess()) {
       throw new OperationException(result, BASE_PHASE)
     }
 
-    TaskAware.task.updateStatus BASE_PHASE, "Finished enabling server group=${description.serverGroupName}."
+    TaskAware.task.updateStatus BASE_PHASE, "Finished enabling server group=${serverGroupName}."
     return
   }
 }

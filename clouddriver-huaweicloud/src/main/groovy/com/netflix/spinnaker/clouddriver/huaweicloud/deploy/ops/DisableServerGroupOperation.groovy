@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.servergroup.ServerGroupOperationUtils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 
@@ -43,26 +45,34 @@ class DisableServerGroupOperation implements AtomicOperation<Void> {
   */
   @Override
   Void operate(List priorOutputs) {
-    TaskAware.task.updateStatus BASE_PHASE, "Disabling server group=${description.serverGroupName} in region=${description.region}..."
+    String serverGroupName = description.serverGroupName
+    String region = description.region
+
+    TaskAware.task.updateStatus BASE_PHASE, "Disabling server group=${serverGroupName} in region=${region}..."
 
     def cloudClient = description.credentials.cloudClient
-    String serverGroupId = description.serverGroupId
 
-    if (!serverGroupId) {
-      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
-      if (!(groups.asBoolean() && groups.size() == 1)) {
-        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
-      }
+    ASAutoScalingGroup group = ServerGroupOperationUtils.findScalingGroup(
+      serverGroupName, description.serverGroupId, cloudClient, region, BASE_PHASE)
 
-      serverGroupId = groups[0].groupId
-    }
-
-    ActionResponse result = cloudClient.disableScalingGroup(description.region, serverGroupId)
+    ActionResponse result = cloudClient.disableScalingGroup(region, group.groupId)
     if (!result.isSuccess()) {
       throw new OperationException(result, BASE_PHASE)
     }
 
-    TaskAware.task.updateStatus BASE_PHASE, "Finished disabling server group=${description.serverGroupName}."
+    Map<String, List<String>> poolMembers = ServerGroupOperationUtils.findASLBPoolMembers(
+      group, cloudClient, region, BASE_PHASE)
+
+    poolMembers?.each {String poolId, List<String> memberIds ->
+      memberIds.each {
+        cloudClient.updateLoadBalancerPoolMember(region, poolId, it, 0)
+      }
+    }
+
+    // wait for the request to be done. 15s.
+    sleep(15000)
+
+    TaskAware.task.updateStatus BASE_PHASE, "Finished disabling server group=${serverGroupName}."
     return
   }
 }

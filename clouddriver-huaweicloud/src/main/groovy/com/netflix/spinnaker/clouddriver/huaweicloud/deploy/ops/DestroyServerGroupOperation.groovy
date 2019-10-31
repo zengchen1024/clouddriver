@@ -18,7 +18,11 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops
 
 import com.huawei.openstack4j.model.common.ActionResponse
 import com.huawei.openstack4j.model.scaling.ScalingGroup
+import com.huawei.openstack4j.model.scaling.ScalingGroup.ScalingGroupStatus
+import com.huawei.openstack4j.openstack.scaling.domain.ASAutoScalingGroup
 import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.description.ResizeServerGroupDescription
+import com.netflix.spinnaker.clouddriver.huaweicloud.deploy.ops.servergroup.ServerGroupOperationUtils
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 
@@ -42,28 +46,38 @@ class DestroyServerGroupOperation implements AtomicOperation<Void> {
   */
   @Override
   Void operate(List priorOutputs) {
-    TaskAware.task.updateStatus BASE_PHASE, "Destroying server group=${description.serverGroupName} in region=${description.region}..."
+    String serverGroupName = description.serverGroupName
+    String region = description.region
+
+    TaskAware.task.updateStatus BASE_PHASE, "Destroying server group=${serverGroupName} in region=${region}..."
 
     def cloudClient = description.credentials.cloudClient
-    String serverGroupId = description.serverGroupId
 
-    if (!serverGroupId) {
-      List<? extends ScalingGroup> groups = cloudClient.getScalingGroups(description.region, description.serverGroupName)
-      if (!(groups.asBoolean() && groups.size() == 1)) {
-        throw new OperationException(BASE_PHASE, "there are zero or more than one server groups with name ${description.serverGroupName}")
-      }
+    ASAutoScalingGroup group = ServerGroupOperationUtils.findScalingGroup(
+      serverGroupName, description.serverGroupId, cloudClient, region, BASE_PHASE)
 
-      serverGroupId = groups[0].groupId
+    // if the server group is disabled, then remove all instances, otherwise it will be failed to destroy sg.
+    // TODO invoke force deleting auto scaling instead.
+    if (group.groupStatus == ScalingGroupStatus.PAUSED) {
+      ResizeServerGroupDescription resizeDescription = new ResizeServerGroupDescription(
+        capacity: new ResizeServerGroupDescription.Capacity(0, 0, 0),
+        region: region,
+        serverGroupId: group.groupId,
+        serverGroupName: serverGroupName,
+        credentials: description.credentials,
+      )
+
+      (new ResizeServerGroupOperation(resizeDescription, BASE_PHASE)).operate(priorOutputs)
     }
 
-    ActionResponse result = cloudClient.deleteScalingGroup(description.region, serverGroupId)
+    ActionResponse result = cloudClient.deleteScalingGroup(region, group.groupId)
 
     if (!result.isSuccess()) {
       // if there are instances attached to this server group, it will fail.
       throw new OperationException(result, BASE_PHASE)
     }
 
-    TaskAware.task.updateStatus BASE_PHASE, "Finished destroying server group=${description.serverGroupName}."
+    TaskAware.task.updateStatus BASE_PHASE, "Finished destroying server group=${serverGroupName}."
     return
   }
 }

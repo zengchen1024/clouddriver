@@ -40,7 +40,7 @@ class DeployServerGroupOperation implements AtomicOperation<DeploymentResult> {
     this.description = description
   }
 
-  DeployServerGroupOperation(DeployServerGroupDescription description, basePhase) {
+  DeployServerGroupOperation(DeployServerGroupDescription description, String basePhase) {
     this.description = description
     this.BASE_PHASE = basePhase
   }
