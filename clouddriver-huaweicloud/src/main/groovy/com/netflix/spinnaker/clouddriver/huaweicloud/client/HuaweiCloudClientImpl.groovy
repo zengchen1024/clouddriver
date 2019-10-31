@@ -172,7 +172,11 @@ class HuaweiCloudClientImpl implements HuaweiCloudClient {
 
   @Override
   Image getImage(String region, String imageId) {
-    getRegionClient(region).imsV2().images().get(imageId)
+    List<Image> result = getRegionClient(region).imsV2().images().list(["id": imageId])
+    if (result && result.size() == 1) {
+      return result[0]
+    }
+    return null
   }
 
   @Override
